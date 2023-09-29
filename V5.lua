@@ -1,15 +1,20 @@
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+local random = Random.new()
+
+local plrPulled = Instance.new("BindableEvent")
 
 local function spawn(func, ...)
 	local thread = coroutine.create(func)
-	
+
 	local suc, res = coroutine.resume(thread, ...) 
 	if not suc then
 		error(res)
 	end
-	
+
 	return thread
 end
 
@@ -23,20 +28,17 @@ end
 
 local function parry()
 	local param1 = 0.5
-	local param2 = CFrame.new()
+	local param2 = CFrame.lookAt(Vector3.zero, --random:NextUnitVector()
+		Vector3.yAxis
+	)
 	local param3 = {}
-	local param4 = {}
-	
+	local param4 = {238, 40}
+
 	for _, alive in ipairs(workspace.Alive:GetChildren()) do
 		local plr = Players:GetPlayerFromCharacter(alive)
-		param3[tostring(plr.UserId)] = Vector3.zero
+		param3[tostring(plr.UserId)] = alive.HumanoidRootPart.Position
 	end
-	
-	local ball = findBall()
-	if ball then
-		param2 = CFrame.lookAt(player.Character.HumanoidRootPart.Position, ball.Position)
-	end
-	
+
 	game.ReplicatedStorage.Remotes.ParryAttempt:FireServer(param1, param2, param3, param4)
 end
 
@@ -45,57 +47,162 @@ local function checkDist(v1, v2)
 end
 
 local function start()
+	local thread = coroutine.running()
+
 	local range = workspace:FindFirstChild("range") or Instance.new("CylinderHandleAdornment")
 	range.Name = "range"
 	range.CFrame = CFrame.Angles(math.rad(90), 0, 0)
 	range.Color3 = Color3.new(1, 1, 1)
-	range.Height = 0
+	range.Height = 1
+	range.Radius = 25
+	range.InnerRadius = range.Radius - 1
 	range.Parent = workspace
-	
+
 	local spamRange = workspace:FindFirstChild("spamRange") or Instance.new("CylinderHandleAdornment")
 	spamRange.Name = "spamRange"
 	spamRange.CFrame = CFrame.new(0, -0.001, 0) * CFrame.Angles(math.rad(90), 0, 0)
 	spamRange.Color3 = Color3.new(0, 0, 1)
-	spamRange.Height = 0
-	spamRange.Radius = 25.5
-	spamRange.InnerRadius = spamRange.Radius - 2
+	spamRange.Height = 1
+	spamRange.Radius = 25
+	spamRange.InnerRadius = spamRange.Radius - 1
 	spamRange.Parent = workspace
+
+	local lastTargetRange = workspace:FindFirstChild("lastTargetRange") or Instance.new("CylinderHandleAdornment")
+	lastTargetRange.Name = "lastTargetRange"
+	lastTargetRange.CFrame = CFrame.new(0, -0.002, 0) * CFrame.Angles(math.rad(90), 0, 0)
+	lastTargetRange.Color3 = Color3.new(1, 0, 1)
+	lastTargetRange.Height = 1
+	lastTargetRange.Radius = 100
+	lastTargetRange.InnerRadius = lastTargetRange.Radius - 1
+	lastTargetRange.Visible = false
+	lastTargetRange.Parent = workspace
+	
+	local ballLookVector = workspace:FindFirstChild("ballLookVector") or Instance.new("ConeHandleAdornment")
+	ballLookVector.Name = "ballLookVector"
+	ballLookVector.CFrame = CFrame.new(0, 0, -2)
+	ballLookVector.Color3 = Color3.new(1, 1, 1)
+	ballLookVector.Height = 2
+	ballLookVector.Radius = 1
+	ballLookVector.Parent = workspace
 	
 	local lastParryTime = workspace:GetServerTimeNow()
-	
-	local maxDist = 25
-	local lastTargetDist = math.huge
-	
+
+	local lastTarget
+
+	local function updateRanges()
+		while coroutine.status(thread) ~= "dead" do
+			local ball = findBall()
+
+			range.Adornee = player.Character:FindFirstChild("HumanoidRootPart")
+			spamRange.Adornee = player.Character:FindFirstChild("HumanoidRootPart")
+			lastTargetRange.Adornee = player.Character:FindFirstChild("HumanoidRootPart")
+			ballLookVector.Adornee = ball
+			
+			if ball and ball:FindFirstChild("zoomies") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+				local speed = ball.zoomies.VectorVelocity.Magnitude
+				local dist = checkDist(ball.Position, player.Character.HumanoidRootPart.Position)
+					
+				if (speed / 2.74) > range.Radius then
+					range.Radius = math.clamp(speed / 2.74, 25, 250)
+					range.InnerRadius = range.Radius - 1
+				end
+				
+				spamRange.Radius = range.Radius / 1.625 --math.clamp(spamRange.Radius + 0.125, 25, 250)
+				spamRange.InnerRadius = spamRange.Radius - 1
+
+				local target = ball:GetAttribute("target")
+
+				if target == player.Name then
+					range.Color3 = Color3.new(1, 1, 0)
+
+					if dist < range.Radius then
+						range.Color3 = Color3.new(1, 0, 0)
+
+						--spamRange.Radius = range.Radius / 2 --math.clamp(spamRange.Radius + 0.125, 25, 250)
+						--spamRange.InnerRadius = spamRange.Radius - 1
+
+						if lastTargetRange.Radius <= spamRange.Radius then
+							range.Color3 = Color3.new(0, 0, 1)
+						end
+					else
+						range.Color3 = Color3.new(1, 1, 0)
+					end
+				else
+					if target ~= "" then
+						lastTarget = workspace.Alive[target]
+						lastTargetRange.Radius = checkDist(lastTarget.HumanoidRootPart.Position, player.Character.HumanoidRootPart.Position)
+						lastTargetRange.InnerRadius = lastTargetRange.Radius - 1
+					end
+					range.Color3 = Color3.new(1, 1, 1)
+				end
+			end
+
+			task.wait()
+
+			if ball and not ball.Parent then
+				range.Radius = 25
+				range.InnerRadius = range.Radius - 1
+
+				spamRange.Radius = 25
+				spamRange.InnerRadius = spamRange.Radius - 1
+
+				lastTargetRange.Radius = 100
+				lastTargetRange.InnerRadius = lastTargetRange.Radius - 1
+
+				range.Color3 = Color3.new(1, 1, 1)
+			end
+		end
+	end
+
+	local function rainbow()
+		local tween_1 = TweenService:Create(spamRange, TweenInfo.new(1, Enum.EasingStyle.Linear), {Color3 = Color3.new(1, 0, 0)})
+		local tween_2 = TweenService:Create(spamRange, TweenInfo.new(1, Enum.EasingStyle.Linear), {Color3 = Color3.new(0, 1, 0)})
+		local tween_3 = TweenService:Create(spamRange, TweenInfo.new(1, Enum.EasingStyle.Linear), {Color3 = Color3.new(0, 0, 1)})
+
+		while coroutine.status(thread) ~= "dead" do
+			tween_1:Play()
+			tween_1.Completed:Wait()
+			tween_2:Play()
+			tween_2.Completed:Wait()
+			tween_3:Play()
+			tween_3.Completed:Wait()
+		end
+	end
+
+	local co_1 = coroutine.create(rainbow)
+	local co_2 = coroutine.create(updateRanges)
+
+	coroutine.resume(co_1)
+	coroutine.resume(co_2)
+
 	while true do
 		local ball = findBall()
-		
-		range.Adornee = player.Character:FindFirstChild("HumanoidRootPart")
-		spamRange.Adornee = player.Character:FindFirstChild("HumanoidRootPart")
-		range.Radius = maxDist
-		range.InnerRadius = maxDist - 1
-		
-		if ball and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-			local speed = ball.AssemblyLinearVelocity.Magnitude
+
+		if ball and ball:FindFirstChild("zoomies") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+			local speed = ball.zoomies.VectorVelocity.Magnitude
 			local dist = checkDist(ball.Position, player.Character.HumanoidRootPart.Position)
-			if (speed / 2.74) > maxDist then
-				maxDist = math.max(ball.AssemblyLinearVelocity.Magnitude / 2.74, 25)
-			end
-			
+
 			local target = ball:GetAttribute("target")
-			
+
 			if target == player.Name then
-				range.Color3 = Color3.new(1, 1, 0)
-				
-				if dist < maxDist then
-					range.Color3 = Color3.new(1, 0, 0)
-					
-					local duration = workspace:GetServerTimeNow() - lastParryTime
+				if dist < range.Radius then
 					spawn(parry)
-					if lastTargetDist > spamRange.Radius then
-						ball.Changed:Wait()
-						print(ball.AssemblyLinearVelocity.Magnitude)
+
+					if lastTargetRange.Radius > spamRange.Radius then
+						local changed = false
+						local changedConn = ball.Changed:Once(function()
+							changed = true
+						end)
+
+						repeat
+							speed = ball.zoomies.VectorVelocity.Magnitude
+							task.wait()
+						until changed or speed < 1
+
+						changedConn:Disconnect()
 					else
-						range.Color3 = Color3.new(0, 0, 1)
+						--game.ReplicatedStorage.Remotes.PlrForcefielded:FireServer()
+						print("spam")
 						repeat
 							for _ = 1, 2 do
 								spawn(parry)
@@ -105,24 +212,11 @@ local function start()
 						until dist > spamRange.Radius or not ball.Parent
 					end
 					lastParryTime = workspace:GetServerTimeNow()
-				else
-					range.Color3 = Color3.new(1, 1, 0)
 				end
-			else
-				if target ~= "" then
-					lastTargetDist = checkDist(workspace.Alive[target].HumanoidRootPart.Position, player.Character.HumanoidRootPart.Position)
-				end
-				range.Color3 = Color3.new(1, 1, 1)
 			end
-		else -- game over
-			maxDist = 25
-			range.Color3 = Color3.new(1, 1, 1)
 		end
-		
+
 		task.wait()
-		if ball and not ball.Parent then
-			maxDist = 25
-		end
 	end
 end
 
