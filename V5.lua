@@ -33,6 +33,12 @@ local function parry()
 	)
 	local param3 = {}
 	local param4 = {238, 40}
+	
+	local ball = findBall()
+	if ball then
+		local unit = ball.zoomies.VectorVelocity.Unit
+		param2 = CFrame.lookAt(Vector3.zero, unit)
+	end
 
 	for _, alive in ipairs(workspace.Alive:GetChildren()) do
 		local plr = Players:GetPlayerFromCharacter(alive)
@@ -99,19 +105,24 @@ local function start()
 			ballLookVector.Adornee = ball
 			
 			if ball and ball:FindFirstChild("zoomies") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-				local speed = ball.zoomies.VectorVelocity.Magnitude
+				local velocity = ball.zoomies.VectorVelocity
+				local unit = velocity.Unit
+	
+				ballLookVector.CFrame = ball.CFrame.Rotation:Inverse() * CFrame.new(unit * 2, unit * 4)
+				
+				local speed = velocity.Magnitude
 				local dist = checkDist(ball.Position, player.Character.HumanoidRootPart.Position)
-					
+				
 				if (speed / 2.74) > range.Radius then
-					range.Radius = math.clamp(speed / 2.74, 25, 250)
+					range.Radius = math.max(speed / 2.74, 25)
 					range.InnerRadius = range.Radius - 1
 				end
 				
-				spamRange.Radius = range.Radius / 1.625 --math.clamp(spamRange.Radius + 0.125, 25, 250)
+				spamRange.Radius = range.Radius / 1.6 --math.clamp(spamRange.Radius + 0.125, 25, 250)
 				spamRange.InnerRadius = spamRange.Radius - 1
 
 				local target = ball:GetAttribute("target")
-
+				
 				if target == player.Name then
 					range.Color3 = Color3.new(1, 1, 0)
 
