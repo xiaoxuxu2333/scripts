@@ -118,7 +118,7 @@ local function start()
 					range.InnerRadius = range.Radius - 1
 				end
 				
-				spamRange.Radius += 0.25 -- range.Radius / 1.75 --math.clamp(spamRange.Radius + 0.125, 25, 250)
+				spamRange.Radius = range.Radius / 1.75 --math.clamp(spamRange.Radius + 0.125, 25, 250)
 				spamRange.InnerRadius = spamRange.Radius - 1
 
 				local target = ball:GetAttribute("target")
