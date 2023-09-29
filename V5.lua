@@ -37,7 +37,7 @@ local function parry()
 	local ball = findBall()
 	if ball then
 		local unit = ball.zoomies.VectorVelocity.Unit
-		param2 = CFrame.lookAt(Vector3.zero, unit)
+		param2 = CFrame.lookAt(Vector3.zero, -unit)
 	end
 
 	for _, alive in ipairs(workspace.Alive:GetChildren()) do
