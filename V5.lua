@@ -115,7 +115,7 @@ local function start()
 				local speed = velocity.Magnitude
 				local dist = checkDist(ball.Position, player.Character.HumanoidRootPart.Position)
 				
-				local tempMaxDist = (speed / 3.4)
+				local tempMaxDist = (speed / 3.3)
 				
 				local duration = workspace:GetServerTimeNow() - lastParryTime
 				
@@ -133,7 +133,7 @@ local function start()
 						range.Color3 = Color3.new(1, 0, 0)
 						
 						if duration < 0.35 then
-							spamRange.Radius += 0.6 --range.Radius / 1.6 --math.clamp(spamRange.Radius + 0.125, 25, 250)
+							spamRange.Radius = math.min(spamRange.Radius + 0.6, 100) --range.Radius / 1.6 --math.clamp(spamRange.Radius + 0.125, 25, 250)
 							spamRange.InnerRadius = spamRange.Radius - 1
 						end
 
