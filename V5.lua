@@ -259,8 +259,6 @@ local function start()
 
 		task.wait()
 	end
-	
-	print("wtf")
 end
 
 if _G.started then
