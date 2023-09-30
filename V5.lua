@@ -115,7 +115,7 @@ local function start()
 				local speed = velocity.Magnitude
 				local dist = checkDist(ball.Position, player.Character.HumanoidRootPart.Position)
 				
-				local tempMaxDist = (speed / 3.6)
+				local tempMaxDist = (speed / 3.5)
 				
 				local duration = workspace:GetServerTimeNow() - lastParryTime
 				
