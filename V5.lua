@@ -5,8 +5,6 @@ local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 local random = Random.new()
 
-local plrPulled = Instance.new("BindableEvent")
-
 local function spawn(func, ...)
 	local thread = coroutine.create(func)
 
@@ -69,7 +67,7 @@ local function start()
 	spamRange.CFrame = CFrame.new(0, -0.001, 0) * CFrame.Angles(math.rad(90), 0, 0)
 	spamRange.Color3 = Color3.new(0, 0, 1)
 	spamRange.Height = 1
-	spamRange.Radius = 25
+	spamRange.Radius = 15
 	spamRange.InnerRadius = spamRange.Radius - 1
 	spamRange.Parent = workspace
 
@@ -107,19 +105,24 @@ local function start()
 			if ball and ball:FindFirstChild("zoomies") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
 				local velocity = ball.zoomies.VectorVelocity
 				local unit = velocity.Unit
-	
+				
+				range.CFrame = player.Character.HumanoidRootPart.CFrame.Rotation:Inverse() * CFrame.Angles(math.rad(90), 0, 0)
+				spamRange.CFrame = player.Character.HumanoidRootPart.CFrame.Rotation:Inverse() * CFrame.new(0, -0.001, 0) * CFrame.Angles(math.rad(90), 0, 0)
+				lastTargetRange.CFrame = player.Character.HumanoidRootPart.CFrame.Rotation:Inverse() * CFrame.new(0, -0.002, 0) * CFrame.Angles(math.rad(90), 0, 0)
+				
 				ballLookVector.CFrame = ball.CFrame.Rotation:Inverse() * CFrame.new(unit * 2, unit * 4)
 				
 				local speed = velocity.Magnitude
 				local dist = checkDist(ball.Position, player.Character.HumanoidRootPart.Position)
 				
-				if (speed / 2.74) > range.Radius then
-					range.Radius = math.max(speed / 2.74, 25)
+				local tempMaxDist = (speed / 3.6)
+				
+				local duration = workspace:GetServerTimeNow() - lastParryTime
+				
+				if tempMaxDist > range.Radius then
+					range.Radius = math.max(tempMaxDist, 25)
 					range.InnerRadius = range.Radius - 1
 				end
-				
-				spamRange.Radius = range.Radius / 1.75 --math.clamp(spamRange.Radius + 0.125, 25, 250)
-				spamRange.InnerRadius = spamRange.Radius - 1
 
 				local target = ball:GetAttribute("target")
 				
@@ -128,11 +131,13 @@ local function start()
 
 					if dist < range.Radius then
 						range.Color3 = Color3.new(1, 0, 0)
+						
+						if duration < 0.35 then
+							spamRange.Radius += 0.6 --range.Radius / 1.6 --math.clamp(spamRange.Radius + 0.125, 25, 250)
+							spamRange.InnerRadius = spamRange.Radius - 1
+						end
 
-						--spamRange.Radius = range.Radius / 2 --math.clamp(spamRange.Radius + 0.125, 25, 250)
-						--spamRange.InnerRadius = spamRange.Radius - 1
-
-						if lastTargetRange.Radius <= spamRange.Radius then
+						if lastTargetRange.Radius < spamRange.Radius then
 							range.Color3 = Color3.new(0, 0, 1)
 						end
 					else
@@ -154,7 +159,7 @@ local function start()
 				range.Radius = 25
 				range.InnerRadius = range.Radius - 1
 
-				spamRange.Radius = 25
+				spamRange.Radius = 15
 				spamRange.InnerRadius = spamRange.Radius - 1
 
 				lastTargetRange.Radius = 100
@@ -182,21 +187,34 @@ local function start()
 
 	local co_1 = coroutine.create(rainbow)
 	local co_2 = coroutine.create(updateRanges)
-
-	coroutine.resume(co_1)
-	coroutine.resume(co_2)
+	
+	do
+		local suc, res = coroutine.resume(co_1)
+		if not suc then
+			error(res)
+		end
+	end
+	do
+		local suc, res = coroutine.resume(co_2)
+		if not suc then
+			error(res)
+		end
+	end
 
 	while true do
 		local ball = findBall()
 
 		if ball and ball:FindFirstChild("zoomies") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-			local speed = ball.zoomies.VectorVelocity.Magnitude
+			local zoomies = ball.zoomies
+			local speed = zoomies.VectorVelocity.Magnitude
 			local dist = checkDist(ball.Position, player.Character.HumanoidRootPart.Position)
 
 			local target = ball:GetAttribute("target")
+			
+			local duration = workspace:GetServerTimeNow() - lastParryTime
 
 			if target == player.Name then
-				if dist < range.Radius then
+				if dist < range.Radius and speed ~= 0 then
 					spawn(parry)
 
 					if lastTargetRange.Radius > spamRange.Radius then
@@ -213,14 +231,26 @@ local function start()
 						changedConn:Disconnect()
 					else
 						--game.ReplicatedStorage.Remotes.PlrForcefielded:FireServer()
-						print("spam")
-						repeat
-							for _ = 1, 2 do
-								spawn(parry)
-							end
-							task.wait()
-							dist = checkDist(ball.Position, player.Character.HumanoidRootPart.Position)
-						until dist > spamRange.Radius or not ball.Parent
+						if duration < 0.6 then
+							local target = lastTarget.HumanoidRootPart
+							local targetDist = checkDist(target.Position, player.Character.HumanoidRootPart.Position)
+							
+							print("spam")
+							
+							repeat
+								for _ = 1, 4 do
+									spawn(parry)
+								end
+								task.wait()
+								targetDist = checkDist(target.Position, player.Character.HumanoidRootPart.Position)
+								speed = zoomies.VectorVelocity.Magnitude
+							until targetDist > spamRange.Radius
+								or not ball.Parent
+								or not player.Character
+								or not lastTarget.Parent
+								or not zoomies.Parent
+								or speed == 0
+						end
 					end
 					lastParryTime = workspace:GetServerTimeNow()
 				end
@@ -229,11 +259,14 @@ local function start()
 
 		task.wait()
 	end
+	
+	print("wtf")
 end
 
 if _G.started then
 	coroutine.close(_G.started)
 	_G.started = nil
+	return
 end
 
 _G.started = coroutine.create(start)
