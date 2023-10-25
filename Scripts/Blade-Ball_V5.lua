@@ -341,14 +341,14 @@ table.insert(coroutines, task.spawn(function()
 					--)
 					--rotator.Enabled = true
 					
-					local tempTargetParrying = tar:FindFirstChild("ParryHighlight")
+					--local tempTargetParrying = tar:FindFirstChild("ParryHighlight")
 					
 					while tarDist < spamRange.Radius
 						and ball.Parent
 						and not isBallStopped(zoomies)
 						and dist < spamRange.Radius * 1.25
 						and (duration < 0.75 or tarDist < 10)
-						and tempTargetParrying
+						--and tempTargetParrying
 					do
 						task.wait()
 						
