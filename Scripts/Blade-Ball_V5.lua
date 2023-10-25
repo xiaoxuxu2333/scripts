@@ -296,6 +296,7 @@ table.insert(coroutines, task.spawn(function()
 					and dist < range.Radius
 				then
 					task.spawn(parry)
+					range.Radius += 5
 					
 					local time = workspace:GetServerTimeNow()
 			
