@@ -295,7 +295,7 @@ local duration = 30
 local lastTime = workspace:GetServerTimeNow()
 
 table.insert(coroutines, task.spawn(function()
-	while true do
+	while false do
 		task.wait()
 		
 		local ball = getBall()
