@@ -33,6 +33,7 @@ spamRange.Parent = workspace
 
 local mover = workspace:FindFirstChild("mover") or Instance.new("AlignPosition")
 mover.Name = "mover"
+mover.Enabled = true
 mover.Position = player.Character.HumanoidRootPart.Position
 mover.Mode = Enum.PositionAlignmentMode.OneAttachment
 mover.ForceLimitMode = Enum.ForceLimitMode.PerAxis
