@@ -249,6 +249,9 @@ table.insert(coroutines, task.spawn(function()
 			and ball
 			and player.Character.Parent == workspace.Alive
 		then
+			if getBallTarget(ball) == player.Character then
+				task.spawn(parry, true)
+			end
 			mover.Position = ball.Position
 		end
 	end
@@ -397,7 +400,5 @@ table.insert(coroutines, task.spawn(function()
 		task.wait()
 		
 		bugBall = UserInputService:IsKeyDown(Enum.KeyCode.G)
-		
-		task.spawn(parry, true)
 	end
 end))
