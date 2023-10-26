@@ -271,6 +271,7 @@ table.insert(coroutines, task.spawn(function()
 		wait(3)
 		map = getMap()
 		for _, v in ipairs(map:GetDescendants()) do
+			print(v:GetFullName())
 			if v:IsA("BasePart") then
 				if v.Name:lower():match("floor") then
 					v.Size = Vector3.new(2048, 1, 2048)
