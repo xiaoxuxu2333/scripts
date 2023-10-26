@@ -33,8 +33,6 @@ spamRange.Parent = workspace
 
 local mover = workspace:FindFirstChild("mover") or Instance.new("AlignPosition")
 mover.Name = "mover"
-mover.Enabled = true
-mover.Position = player.Character.HumanoidRootPart.Position
 mover.Mode = Enum.PositionAlignmentMode.OneAttachment
 mover.ForceLimitMode = Enum.ForceLimitMode.PerAxis
 mover.MaxAxesForce = Vector3.new(math.huge, 0, math.huge)
@@ -340,11 +338,6 @@ table.insert(coroutines, task.spawn(function()
 						task.spawn(parry, true)
 						
 						mover.Position = ball.Position
-						mover.Enabled = true
-						rotator.CFrame = CFrame.lookAt(root.Position,
-							Vector3.new(ball.Position.X, root.Position.Y, ball.Position.Z)
-						)
-						rotator.Enabled = true
 						
 						task.wait()
 					end
