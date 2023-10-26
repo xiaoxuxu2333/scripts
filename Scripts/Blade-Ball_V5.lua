@@ -320,7 +320,7 @@ table.insert(coroutines, task.spawn(function()
 					lastTime = time
 					
 					repeat 
-						task.spawn(parry)
+						task.spawn(parry, false)
 						task.wait()
 					until isOthersInvis()
 						or getBallTarget(ball) ~= tar
