@@ -273,16 +273,17 @@ table.insert(coroutines, task.spawn(function()
 		repeat wait() until getMap() ~= map
 		wait(3)
 		map = getMap()
-		local platform = Instance.new("Part")
-		platform.Anchored = true
-		platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*13.5)
-		platform.Size = Vector3.new(2048, 1, 2048)
-		platform.Parent = map
 		for _, v in ipairs(map:GetDescendants()) do
 			if v:IsA("BasePart") then
 				v.CanCollide = false
 			end
 		end
+		local platform = Instance.new("Part")
+		platform.Anchored = true
+		platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*13.5)
+		platform.Size = Vector3.new(2048, 1, 2048)
+		platform.Parent = map
+		
 	end
 end))
 
