@@ -267,24 +267,20 @@ end))
 
 table.insert(coroutines, task.spawn(function()
 	while true do
-		wait()
+		task.wait()
 		local map = getMap()
-		repeat wait() until getMap() ~= map
-		wait(3)
-		map = getMap()
 		for _, v in ipairs(map:GetDescendants()) do
 			if v:IsA("BasePart") then
 				v.CanCollide = false
 			end
 		end
-		local platform = Instance.new("Part")
+		local platform = map:FindFirstChild("platform") or Instance.new("Part")
+		platform.Name = "platform"
 		platform.Anchored = true
 		if map:FindFirstChild("BottomCircle") then
 			platform.Position = map.BottomCircle.Position-(Vector3.yAxis*0)
-			sendNotification("", "BottomCircle")
 		else
 			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*0)
-			sendNotification("", "No BottomCircle")
 		end
 		platform.Size = Vector3.new(2048, 1, 2048)
 		platform.Parent = map
