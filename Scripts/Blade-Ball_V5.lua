@@ -272,6 +272,11 @@ table.insert(coroutines, task.spawn(function()
 		map = getMap()
 		for _, v in ipairs(map:GetDescendants()) do
 			if v:IsA("BasePart") then
+				if v.Name:lower():match("floor") then
+					v.Size = Vector3.new(2048, v.Size.Y, 2048)
+				else
+					v.CanCollide = false
+				end
 				v.Position -= Vector3.yAxis * 13.5
 			end
 		end
