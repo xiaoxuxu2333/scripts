@@ -36,7 +36,7 @@ mover.Name = "mover"
 mover.Mode = Enum.PositionAlignmentMode.OneAttachment
 mover.ForceLimitMode = Enum.ForceLimitMode.PerAxis
 mover.MaxAxesForce = Vector3.new(math.huge, 0, math.huge)
-mover.MaxVelocity = 120
+mover.MaxVelocity = 60
 mover.Responsiveness = 200
 mover.Parent = workspace
 
