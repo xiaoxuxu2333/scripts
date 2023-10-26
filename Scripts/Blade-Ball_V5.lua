@@ -327,7 +327,6 @@ table.insert(coroutines, task.spawn(function()
 				if tarRoot == root
 					and dist < range.Radius
 				then
-					task.spawn(parry)
 					range.Radius += 5
 					
 					local time = workspace:GetServerTimeNow()
@@ -336,6 +335,7 @@ table.insert(coroutines, task.spawn(function()
 					lastTime = time
 					
 					repeat
+						task.spawn(parry)
 						task.wait()
 					until isOthersInvis()
 						or getBallTarget(ball) ~= tar
