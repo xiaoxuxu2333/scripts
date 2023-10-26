@@ -299,7 +299,7 @@ table.insert(coroutines, task.spawn(function()
 			local tar = getBallTarget(ball)
 			local tarRoot = tar and tar:FindFirstChild("HumanoidRootPart")
 			local spd = zoomies.VectorVelocity.magnitude
-			local maxDist = 16 --math.max(spd / 3, range.Radius)
+			local maxDist = math.max(spd / 3, range.Radius)
 			local maxSpamDist = math.clamp(maxDist / 2, 24, 100)
 			
 			range.Radius = maxDist
@@ -320,7 +320,6 @@ table.insert(coroutines, task.spawn(function()
 				if tarRoot == root
 					and dist < range.Radius
 				then
-					task.spawn(parry)
 					range.Radius += 5
 					
 					local time = workspace:GetServerTimeNow()
@@ -329,6 +328,7 @@ table.insert(coroutines, task.spawn(function()
 					lastTime = time
 					
 					repeat 
+						task.spawn(parry)
 						task.wait()
 					until isOthersInvis()
 						or getBallTarget(ball) ~= tar
