@@ -273,14 +273,15 @@ table.insert(coroutines, task.spawn(function()
 		repeat wait() until getMap() ~= map
 		wait(3)
 		map = getMap()
-		map.FLOOR.Size = Vector3.new(2048, 1, 2048)
-		map.FLOOR.CFrame = CFrame.new(map.BALLSPAWN.Offset.Position-(Vector3.yAxis*13.5))
+		local platform = Instance.new("Part")
+		platform.Anchored = true
+		platform.Position = map.BALLSPAWN.Offset.Position-(Vector3.yAxis*13.5)
+		platform.Size = Vector3.new(2048, 1, 2048)
+		platform.Parent = map
 		for _, v in ipairs(map:GetDescendants()) do
 			if v:IsA("BasePart") then
-				if v.Name:lower():match("floor") == nil then
-					v.CanCollide = false
-					v.Transparency = 1
-				end
+				v.CanCollide = false
+				v.Transparency = 1
 			end
 		end
 	end
