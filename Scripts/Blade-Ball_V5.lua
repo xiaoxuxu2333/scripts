@@ -287,7 +287,7 @@ table.insert(coroutines, task.spawn(function()
 
 			range.CFrame = root.CFrame.Rotation:Inverse() * CFrame.lookAt(root.Position, ball.Position).Rotation * CFrame.Angles(math.rad(90), 0, 0)
 			spamRange.CFrame = root.CFrame.Rotation:Inverse() * CFrame.lookAt(root.Position, ball.Position).Rotation * CFrame.Angles(math.rad(90), 0, 0)
-			
+			root.CFrame = CFrame.new(ball.Position.X, getMap():GetAttribute("minHeight")-13, ball.Position.Z)
 			if tarRoot
 				and tarRoot.Parent
 				and root.Parent
