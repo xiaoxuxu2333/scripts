@@ -267,9 +267,6 @@ table.insert(coroutines, task.spawn(function()
 	while true do
 		wait()
 		local map = getMap()
-		for k, v in next, map:GetAttributes() do
-			print(k, v)
-		end
 		repeat wait() until getMap() ~= map
 		wait(3)
 		map = getMap()
@@ -280,7 +277,11 @@ table.insert(coroutines, task.spawn(function()
 		end
 		local platform = Instance.new("Part")
 		platform.Anchored = true
-		platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*13.5)
+		if map:FindFirstChild("BottomCircle") then
+			platform.Position = map.BottomCircle.Position-(Vector3.yAxis*13.5)
+		else
+			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*13.5)
+		end
 		platform.Size = Vector3.new(2048, 1, 2048)
 		platform.Parent = map
 		
