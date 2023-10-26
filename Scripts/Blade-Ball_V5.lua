@@ -278,9 +278,9 @@ table.insert(coroutines, task.spawn(function()
 		local platform = Instance.new("Part")
 		platform.Anchored = true
 		if map:FindFirstChild("BottomCircle") then
-			platform.Position = map.BottomCircle.Position-(Vector3.yAxis*15)
+			platform.Position = map.BottomCircle.Position-(Vector3.yAxis*14)
 		else
-			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*15)
+			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*14)
 		end
 		platform.Size = Vector3.new(2048, 1, 2048)
 		platform.Parent = map
