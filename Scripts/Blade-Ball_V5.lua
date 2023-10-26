@@ -252,7 +252,7 @@ table.insert(coroutines, task.spawn(function()
 			local tar = getBallTarget(ball)
 			if tar == nil or tar:FindFirstChild("HumanoidRootPart") == nil then continue end
 			if tar == player.Character then
-				task.spawn(parry, true)
+				--task.spawn(parry, true)
 			else
 				mover.Position = tar.HumanoidRootPart.Position
 			end
