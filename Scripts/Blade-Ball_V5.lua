@@ -398,8 +398,6 @@ table.insert(coroutines, task.spawn(function()
 		
 		bugBall = UserInputService:IsKeyDown(Enum.KeyCode.G)
 		
-		--if UserInputService:IsKeyDown(Enum.KeyCode.H) then
-			task.spawn(parry, true)
-		--end
+		task.spawn(parry, true)
 	end
 end))
