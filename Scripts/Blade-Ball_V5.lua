@@ -275,7 +275,7 @@ table.insert(coroutines, task.spawn(function()
 		map = getMap()
 		local platform = Instance.new("Part")
 		platform.Anchored = true
-		platform.Position = map.BALLSPAWN.Offset.Position-(Vector3.yAxis*13.5)
+		platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*13.5)
 		platform.Size = Vector3.new(2048, 1, 2048)
 		platform.Parent = map
 		for _, v in ipairs(map:GetDescendants()) do
