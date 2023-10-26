@@ -259,10 +259,31 @@ table.insert(coroutines, task.spawn(function()
 			and ball
 			and player.Character.Parent == workspace.Alive
 		then
-			root.CFrame = CFrame.new(ball.Position.X, ball.Position.Y-11, ball.Position.Z)
+			mover.Position = ball.Position
+			mover.Enabled = true
+			rotator.CFrame = CFrame.lookAt(root.Position,
+				Vector3.new(ball.Position.X, root.Position.Y, ball.Position.Z)
+			)
+			rotator.Enabled = true
 		end
 	end
 end))
+
+table.insert(coroutines, task.spawn(function()
+	while true do
+		wait()
+		local map = getMap()
+		for _, v in ipairs(map:GetDescendants()) do
+			if v:IsA("BasePart") then
+				v.Position -= Vector3.yAxis * 13
+			end
+		end
+		while map.Parent do
+			wait()
+		end
+	end
+end))
+
 
 local duration = 30
 local lastTime = workspace:GetServerTimeNow()
@@ -346,13 +367,6 @@ table.insert(coroutines, task.spawn(function()
 					local tarDist = (root.Position - tarRoot.Position).magnitude
 					
 					local looped = false
-					
-					--mover.Position = tarRoot.Position + -(tarRoot.CFrame.LookVector * 5)
-					--mover.Enabled = true
-					--rotator.CFrame = CFrame.lookAt(root.Position,
-					--	Vector3.new(tarRoot.Position.X, root.Position.Y, tarRoot.Position.Z)
-					--)
-					--rotator.Enabled = true
 					
 					--local tempTargetParrying = tar:FindFirstChild("ParryHighlight")
 					
