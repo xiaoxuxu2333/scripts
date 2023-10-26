@@ -274,7 +274,7 @@ table.insert(coroutines, task.spawn(function()
 		wait(3)
 		map = getMap()
 		map.FLOOR.Size = Vector3.new(2048, 1, 2048)
-		map.FLOOR.CFrame = CFrame.new(map.BALLSPAWN.Offset.Position-Vector3.yAxis*13.5)
+		map.FLOOR.CFrame = CFrame.new(map.BALLSPAWN.Offset.Position-(Vector3.yAxis*13.5))
 		for _, v in ipairs(map:GetDescendants()) do
 			if v:IsA("BasePart") then
 				if v.Name:lower():match("floor") == nil then
