@@ -36,8 +36,8 @@ mover.Name = "mover"
 mover.Mode = Enum.PositionAlignmentMode.OneAttachment
 mover.ForceLimitMode = Enum.ForceLimitMode.PerAxis
 mover.MaxAxesForce = Vector3.new(math.huge, 0, math.huge)
-mover.MaxVelocity = 60
-mover.Responsiveness = 200
+mover.MaxVelocity = 600
+mover.Responsiveness = 15
 mover.Parent = workspace
 
 local function sendNotification(title, text)
