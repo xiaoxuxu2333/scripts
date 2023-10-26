@@ -285,6 +285,9 @@ table.insert(coroutines, task.spawn(function()
 			spamRange.Radius = maxSpamDist
 			range.InnerRadius = maxSpamDist
 
+			range.CFrame = root.CFrame.Rotation:Inverse() * CFrame.lookAt(root.Position, ball.Position).Rotation
+			spamRange.CFrame = root.CFrame.Rotation:Inverse() * CFrame.lookAt(root.Position, ball.Position).Rotation
+			
 			if tarRoot
 				and tarRoot.Parent
 				and root.Parent
