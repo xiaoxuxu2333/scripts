@@ -33,21 +33,13 @@ spamRange.Parent = workspace
 
 local mover = workspace:FindFirstChild("mover") or Instance.new("AlignPosition")
 mover.Name = "mover"
-mover.Enabled = false
+mover.Position = player.Character.HumanoidRootPart.Position
 mover.Mode = Enum.PositionAlignmentMode.OneAttachment
 mover.ForceLimitMode = Enum.ForceLimitMode.PerAxis
 mover.MaxAxesForce = Vector3.new(math.huge, 0, math.huge)
 mover.MaxVelocity = 60
 mover.Responsiveness = 200
 mover.Parent = workspace
-
-local rotator = workspace:FindFirstChild("rotator") or Instance.new("AlignOrientation")
-rotator.Name = "rotator"
-rotator.Enabled = false
-rotator.Mode = Enum.OrientationAlignmentMode.OneAttachment
-rotator.MaxTorque = math.huge
-rotator.Responsiveness = 200
-rotator.Parent = workspace
 
 local function sendNotification(title, text)
 	StarterGui:SetCore("SendNotification", {
@@ -253,18 +245,12 @@ table.insert(coroutines, task.spawn(function()
 		range.Adornee = root
 		spamRange.Adornee = root
 		mover.Attachment0 = rootAtt
-		rotator.Attachment0 = rootAtt
 
 		if root
 			and ball
 			and player.Character.Parent == workspace.Alive
 		then
 			mover.Position = ball.Position
-			mover.Enabled = true
-			rotator.CFrame = CFrame.lookAt(root.Position,
-				Vector3.new(ball.Position.X, root.Position.Y, ball.Position.Z)
-			)
-			rotator.Enabled = true
 		end
 	end
 end))
@@ -389,11 +375,6 @@ table.insert(coroutines, task.spawn(function()
 						
 						--root.CFrame = tarRoot.CFrame
 						mover.Position = tarRoot.Position + (rng:NextUnitVector() * 10)
-						mover.Enabled = true
-						rotator.CFrame = CFrame.lookAt(root.Position,
-							Vector3.new(tarRoot.Position.X, root.Position.Y, tarRoot.Position.Z)
-						)
-						rotator.Enabled = true
 						
 						tarDist = (root.Position - tarRoot.Position).magnitude
 						dist = (ball.Position - tarRoot.Position).magnitude
@@ -405,9 +386,6 @@ table.insert(coroutines, task.spawn(function()
 						spamRange.Radius = 24
 						range.InnerRadius = 0
 					end
-					
-					mover.Enabled = false
-					rotator.Enabled = false
 				end
 			end
 		end
