@@ -259,7 +259,7 @@ table.insert(coroutines, task.spawn(function()
 			and ball
 			and player.Character.Parent == workspace.Alive
 		then
-			root.CFrame = CFrame.new(ball.Position.X, ball.Position.Y-12, ball.Position.Z)
+			root.CFrame = CFrame.new(ball.Position.X, ball.Position.Y-10, ball.Position.Z)
 		end
 	end
 end))
