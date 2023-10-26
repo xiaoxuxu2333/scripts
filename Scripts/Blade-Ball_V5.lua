@@ -278,6 +278,7 @@ table.insert(coroutines, task.spawn(function()
 		local platform = workspace:FindFirstChild("platform") or Instance.new("Part")
 		platform.Name = "platform"
 		platform.Anchored = true
+		platform.CanCollide = true
 		if map:FindFirstChild("BottomCircle") then
 			platform.Position = map.BottomCircle.Position-(Vector3.yAxis*10)
 		elseif map:FindFirstChild("BALLSPAWN") then
