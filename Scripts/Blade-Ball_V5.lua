@@ -273,6 +273,7 @@ table.insert(coroutines, task.spawn(function()
 	while true do
 		wait()
 		local map = getMap()
+		wait(3)
 		for _, v in ipairs(map:GetDescendants()) do
 			if v:IsA("BasePart") then
 				v.Position -= Vector3.yAxis * 13
