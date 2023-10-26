@@ -311,6 +311,8 @@ table.insert(coroutines, task.spawn(function()
 						or isBallStopped(zoomies)
 						--or dist < spamRange.Radius
 						or not ball.Parent
+
+					sendNotification("", "Changed")
 					
 					if isBallPulled() and tar:FindFirstChild("ParryHighlight") then
 						sendNotification("Script", "Got Pulled")
