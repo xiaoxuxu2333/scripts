@@ -269,6 +269,7 @@ table.insert(coroutines, task.spawn(function()
 	while true do
 		task.wait()
 		local map = getMap()
+		if map == nil then continue end
 		for _, v in ipairs(map:GetDescendants()) do
 			if v:IsA("BasePart") then
 				v.CanCollide = false
