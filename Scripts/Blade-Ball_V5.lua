@@ -258,6 +258,8 @@ table.insert(coroutines, task.spawn(function()
 			else
 				mover.Position = tar.HumanoidRootPart.Position
 			end
+
+			print(ball.zoomies.VectorVelocity)
 		end
 		mover.Enabled = player.Character.Parent == workspace.Alive
 	end
