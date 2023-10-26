@@ -259,7 +259,7 @@ table.insert(coroutines, task.spawn(function()
 			and ball
 			and player.Character.Parent == workspace.Alive
 		then
-			root.CFrame = CFrame.new(ball.Position.X, getMap():GetAttribute("minHeight")-13, ball.Position.Z)
+			root.CFrame = CFrame.new(ball.Position.X, getMap().BALLSPAWN.Position.Y-13, ball.Position.Z)
 		end
 	end
 end))
