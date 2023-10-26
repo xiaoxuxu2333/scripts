@@ -275,7 +275,7 @@ table.insert(coroutines, task.spawn(function()
 				v.CanCollide = false
 			end
 		end
-		local platform = map:FindFirstChild("platform") or Instance.new("Part")
+		local platform = workspace:FindFirstChild("platform") or Instance.new("Part")
 		platform.Name = "platform"
 		platform.Anchored = true
 		if map:FindFirstChild("BottomCircle") then
@@ -284,7 +284,7 @@ table.insert(coroutines, task.spawn(function()
 			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*0)
 		end
 		platform.Size = Vector3.new(2048, 1, 2048)
-		platform.Parent = map
+		platform.Parent = workspace
 		
 	end
 end))
