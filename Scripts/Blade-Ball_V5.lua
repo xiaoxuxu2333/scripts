@@ -283,9 +283,9 @@ table.insert(coroutines, task.spawn(function()
 			y = math.abs(ball.zoomies.VectorVelocity.Y) / 10
 		end
 		if map:FindFirstChild("BottomCircle") then
-			platform.Position = map.BottomCircle.Position-(Vector3.yAxis*(10-y))
+			platform.Position = map.BottomCircle.Position-(Vector3.yAxis*(10+y))
 		elseif map:FindFirstChild("BALLSPAWN") then
-			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*(10-y))
+			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*(10+y))
 		end
 		platform.Size = Vector3.new(2048, 1, 2048)
 		platform.Parent = workspace
