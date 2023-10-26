@@ -281,7 +281,7 @@ table.insert(coroutines, task.spawn(function()
 			platform.Position = map.BottomCircle.Position-(Vector3.yAxis*13)
 			sendNotification("", "BottomCircle")
 		else
-			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*17)
+			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*20)
 			sendNotification("", "No BottomCircle")
 		end
 		platform.Size = Vector3.new(2048, 1, 2048)
