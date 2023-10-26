@@ -254,6 +254,7 @@ table.insert(coroutines, task.spawn(function()
 			end
 			mover.Position = ball.Position
 		end
+		mover.Enabled = player.Character.Parent == workspace.Alive
 	end
 end))
 
