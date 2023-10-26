@@ -267,8 +267,8 @@ table.insert(coroutines, task.spawn(function()
 	while true do
 		wait()
 		local map = getMap()
-		for k, v in pairs(map:GetAttributes()) do
-			print(k, v)----
+		for k, v in next, map:GetAttributes() do
+			print(k, v)
 		end
 		repeat wait() until getMap() ~= map
 		wait(3)
