@@ -280,10 +280,10 @@ table.insert(coroutines, task.spawn(function()
 		local platform = Instance.new("Part")
 		platform.Anchored = true
 		if map:FindFirstChild("BottomCircle") then
-			platform.Position = map.BottomCircle.Position-(Vector3.yAxis*18)
+			platform.Position = map.BottomCircle.Position-(Vector3.yAxis*17)
 			sendNotification("", "BottomCircle")
 		else
-			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*18)
+			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*17)
 			sendNotification("", "No BottomCircle")
 		end
 		platform.Size = Vector3.new(2048, 1, 2048)
