@@ -273,6 +273,8 @@ table.insert(coroutines, task.spawn(function()
 		repeat wait() until getMap() ~= map
 		wait(3)
 		map = getMap()
+		map.FLOOR.Size = Vector3.new(2048, 1, 2048)
+		map.FLOOR.CFrame = CFrame.new(map.BALLSPAWN.Offset.Position)
 		for _, v in ipairs(map:GetDescendants()) do
 			if v:IsA("BasePart") then
 				if v.Name:lower():match("floor") == nil then
@@ -281,8 +283,6 @@ table.insert(coroutines, task.spawn(function()
 				end
 			end
 		end
-		map.FLOOR.Size = Vector3.new(2048, 1, 2048)
-		map.FLOOR.CFrame = CFrame.new(map.BALLSPAWN.Offset.Position)
 	end
 end))
 
