@@ -245,7 +245,8 @@ end
 table.insert(coroutines, task.spawn(function()
 	while true do
 		task.wait()
-		
+
+		local ball = getBall()
 		local root = player.Character:FindFirstChild("HumanoidRootPart")
 		local rootAtt = root and root:FindFirstChild("RootAttachment")
 		
@@ -253,6 +254,13 @@ table.insert(coroutines, task.spawn(function()
 		spamRange.Adornee = root
 		mover.Attachment0 = rootAtt
 		rotator.Attachment0 = rootAtt
+
+		if root
+			and ball
+			and player.Character.Parent == workspace.Alive
+		then
+			root.CFrame = CFrame.new(ball.Position.X, getMap():GetAttribute("minHeight")-13, ball.Position.Z)
+		end
 	end
 end))
 
@@ -287,7 +295,7 @@ table.insert(coroutines, task.spawn(function()
 
 			range.CFrame = root.CFrame.Rotation:Inverse() * CFrame.lookAt(root.Position, ball.Position).Rotation * CFrame.Angles(math.rad(90), 0, 0)
 			spamRange.CFrame = root.CFrame.Rotation:Inverse() * CFrame.lookAt(root.Position, ball.Position).Rotation * CFrame.Angles(math.rad(90), 0, 0)
-			root.CFrame = CFrame.new(ball.Position.X, getMap():GetAttribute("minHeight")-13, ball.Position.Z)
+			
 			if tarRoot
 				and tarRoot.Parent
 				and root.Parent
