@@ -279,7 +279,6 @@ table.insert(coroutines, task.spawn(function()
 					v.CanCollide = false
 					v.Transparency = 1
 				end
-				v.Position -= Vector3.yAxis * 13.5
 			end
 		end
 		map.FLOOR.Size = Vector3.new(2048, 1, 2048)
