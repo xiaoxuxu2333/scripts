@@ -35,9 +35,9 @@ local mover = workspace:FindFirstChild("mover") or Instance.new("AlignPosition")
 mover.Name = "mover"
 mover.Mode = Enum.PositionAlignmentMode.OneAttachment
 mover.ForceLimitMode = Enum.ForceLimitMode.PerAxis
-mover.MaxAxesForce = Vector3.new(math.huge, 0, math.huge)
+mover.MaxAxesForce = Vector3.new(100000, 0, 100000)
 mover.MaxVelocity = 100
-mover.Responsiveness = 200
+mover.Responsiveness = 100
 mover.Parent = workspace
 
 local function sendNotification(title, text)
@@ -249,10 +249,12 @@ table.insert(coroutines, task.spawn(function()
 			and ball
 			and player.Character.Parent == workspace.Alive
 		then
-			if getBallTarget(ball) == player.Character then
+			local tar = getBallTarget(ball)
+			if tar == player.Character then
 				task.spawn(parry, true)
+			else
+				mover.Position = tar.HumanoidRootPart.Position
 			end
-			mover.Position = ball.Position
 		end
 		mover.Enabled = player.Character.Parent == workspace.Alive
 	end
