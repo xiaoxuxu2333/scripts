@@ -280,7 +280,7 @@ table.insert(coroutines, task.spawn(function()
 		if map:FindFirstChild("BottomCircle") then
 			platform.Position = map.BottomCircle.Position-(Vector3.yAxis*13)
 		else
-			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*13)
+			platform.Position = map.BALLSPAWN.Position-(Vector3.yAxis*14)
 		end
 		platform.Size = Vector3.new(2048, 1, 2048)
 		platform.Parent = map
