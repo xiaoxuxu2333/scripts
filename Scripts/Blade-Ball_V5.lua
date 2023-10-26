@@ -281,7 +281,7 @@ table.insert(coroutines, task.spawn(function()
 		local ball = getBall()
 		if ball and ball:FindFirstChild("zoomies") then
 			y = ball.zoomies.VectorVelocity.Y / 10
-		end--
+		end---
 		if map:FindFirstChild("BottomCircle") then
 			platform.Position = map.BottomCircle.Position-(Vector3.yAxis*(10+y))
 		elseif map:FindFirstChild("BALLSPAWN") then
