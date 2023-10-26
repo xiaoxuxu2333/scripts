@@ -35,9 +35,9 @@ local mover = workspace:FindFirstChild("mover") or Instance.new("AlignPosition")
 mover.Name = "mover"
 mover.Mode = Enum.PositionAlignmentMode.OneAttachment
 mover.ForceLimitMode = Enum.ForceLimitMode.PerAxis
-mover.MaxAxesForce = Vector3.new(10000, 0, 10000)
+mover.MaxAxesForce = Vector3.new(50000, 0, 50000)
 mover.MaxVelocity = 100
-mover.Responsiveness = 100
+mover.Responsiveness = 200
 mover.Parent = workspace
 
 local function sendNotification(title, text)
@@ -237,6 +237,8 @@ table.insert(coroutines, task.spawn(function()
 	while true do
 		task.wait()
 
+		bugBall = UserInputService:IsKeyDown(Enum.KeyCode.G)
+
 		local ball = getBall()
 		local root = player.Character:FindFirstChild("HumanoidRootPart")
 		local rootAtt = root and root:FindFirstChild("RootAttachment")
@@ -320,6 +322,7 @@ table.insert(coroutines, task.spawn(function()
 				if tarRoot == root
 					and dist < range.Radius
 				then
+					task.spawn(parry)
 					range.Radius += 5
 					
 					local time = workspace:GetServerTimeNow()
@@ -327,8 +330,7 @@ table.insert(coroutines, task.spawn(function()
 					duration = time - lastTime
 					lastTime = time
 					
-					repeat 
-						task.spawn(parry)
+					repeat
 						task.wait()
 					until isOthersInvis()
 						or getBallTarget(ball) ~= tar
@@ -397,13 +399,5 @@ table.insert(coroutines, task.spawn(function()
 		range.Radius = 15
 		spamRange.Radius = 24
 		range.InnerRadius = 0
-	end
-end))
-
-table.insert(coroutines, task.spawn(function()
-	while true do
-		task.wait()
-		
-		bugBall = UserInputService:IsKeyDown(Enum.KeyCode.G)
 	end
 end))
