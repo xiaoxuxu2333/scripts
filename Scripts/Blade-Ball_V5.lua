@@ -278,7 +278,7 @@ table.insert(coroutines, task.spawn(function()
 			if v:IsA("BasePart") then
 				if v.Name:lower():match("floor") then
 					v.Size = Vector3.new(2048, 1, 2048)
-					v.CFrame = map.BALLSPAWN.CFrame
+					v.CFrame = CFrame.new(map.BALLSPAWN.Offset.Position)
 				else
 					v.CanCollide = false
 					v.Transparency = 1
