@@ -299,7 +299,7 @@ table.insert(coroutines, task.spawn(function()
 			local tar = getBallTarget(ball)
 			local tarRoot = tar and tar:FindFirstChild("HumanoidRootPart")
 			local spd = zoomies.VectorVelocity.magnitude
-			local maxDist = 25 --math.max(spd / 3, range.Radius)
+			local maxDist = 16 --math.max(spd / 3, range.Radius)
 			local maxSpamDist = math.clamp(maxDist / 2, 24, 100)
 			
 			range.Radius = maxDist
