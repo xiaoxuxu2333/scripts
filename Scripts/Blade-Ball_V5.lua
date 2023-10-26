@@ -281,7 +281,6 @@ table.insert(coroutines, task.spawn(function()
 		for _, v in ipairs(map:GetDescendants()) do
 			if v:IsA("BasePart") then
 				v.CanCollide = false
-				v.Transparency = 1
 			end
 		end
 	end
