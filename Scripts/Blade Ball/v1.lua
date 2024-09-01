@@ -101,11 +101,12 @@ function Blocker.new(ball)
         
         vis = {
             text = Drawing.new("Text");
-            --range = Instance.new("CylinderHandleAdornment");
-            hitsound = Instance.new("Sound");
             targetHighlight = Instance.new("Highlight");
         };
+        
         _connections = {};
+        _tasks = {};
+        _coroutines = {};
     }, Blocker)
 end
 
@@ -113,8 +114,6 @@ function Blocker:Init()
     self.ball.Transparency = 0
     self.ball:SetAttribute("server", true)
     
-    self.vis.hitsound.SoundId = "rbxassetid://5763723309"
-
     self.vis.targetHighlight.FillTransparency = 0.5
     self.vis.targetHighlight.FillColor = Color3.new(1, 1, 0)
     self.vis.targetHighlight.OutlineColor = Color3.new(1, 1, 1)
@@ -128,7 +127,7 @@ function Blocker:Init()
     self.vis.text.Position = Vector2.new(50, 50)
     self.vis.text.Visible = true
     
-    self._updateConnection = RunService.PostSimulation:Connect(function(delta)
+    self:_insert(RunService.PostSimulation:Connect(function(delta)
         self.realVelocity = self.ball.AssemblyLinearVelocity
         self.velocity = self.zoomies.VectorVelocity
         
@@ -141,13 +140,11 @@ function Blocker:Init()
             self.maxVelocity = math.max(self.maxVelocity, self.velocity.Magnitude)
         end
         
-        self.pointing = selfToBall.Unit:Dot(self.realVelocity.Unit)
-        
-        -- if self.realVelocity.Unit:Dot(self.velocity.Unit) < 0 then
-            -- self.pointing = selfToBall.Unit:Dot(self.realVelocity.Unit)
-        -- else
-            -- self.pointing = selfToBall.Unit:Dot(self.velocity.Unit)
-        -- end
+        if self.currentTarget and self.currentTarget ~= localChar and (self.currentTarget:GetPivot().Position - localPos).Magnitude < 12.5 then
+            self.pointing = 1
+        else
+            self.pointing = selfToBall.Unit:Dot(self.realVelocity.Unit)
+        end
         
         self.increase = self.velocity.Magnitude * (1 / 60)
         self.maxIncrease = self.maxVelocity * (1 / 60)
@@ -163,18 +160,24 @@ function Blocker:Init()
         local ballToMyTargetDist = (self.ball.Position - targetPos).Magnitude
         local clashRate = targetDist * self.maxIncrease / self.maxVelocity
         
-        local a = 0.325 + ping()
+        local a = 0.5 + ping()
         
         self.reachTime = self.distance * self.increase / self.velocity.Magnitude
         self.reachTimeFromMyTarget = ballToMyTargetDist * self.increase / self.velocity.Magnitude
         if self.currentTarget then
             self.reachTimeFromTarget = (localPos - self.currentTarget:GetPivot().Position).Magnitude * self.increase / self.velocity.Magnitude
         end
-        self.timeToParry = math.max(0.4, self.increase * a * self.pointing)
-        self.maxTimeToParry = math.max(0.4, self.maxIncrease * a)
+        self.timeToParry = math.max(0.325, self.increase * a * self.pointing)
+        self.maxTimeToParry = math.max(0.325, self.maxIncrease * a)
         self.maxTimeToMove = self.distance * self.maxIncrease / self.maxVelocity
         self.parryRate = clashRate / self.maxTimeToParry
-        self.spamRate = 0.4
+        if targetDist < 25 then
+            self.spamRate = 0.65
+        elseif targetDist < 50 then
+            self.spamRate = 0.425
+        else
+            self.spamRate = 0.19
+        end
         
         self.vis.targetHighlight.Adornee = self.myTarget
         
@@ -197,20 +200,11 @@ function Blocker:Init()
             end
         end
         self.vis.text.Text = text
-    end)
+    end))
     
-    local function onAttrChanged(attributeName)
-        if attributeName == "target" then
-            local value = self.ball:GetAttribute(attributeName)
-            if value == "" then return end
-            self.lastTarget = self.currentTarget
-            self.currentTarget = workspace.Alive:FindFirstChild(value)
-        end
-    end
-    
-    self.ball.AttributeChanged:Connect(onAttrChanged)
-    onAttrChanged("target")
-    self.ball.ChildAdded:Connect(function(child)
+    self:_insert(self.ball.AttributeChanged:Connect(function(...) self:_onAttrChanged(...) end))
+    self:_onAttrChanged("target")
+    self:_insert(self.ball.ChildAdded:Connect(function(child)
         local n = child.Name
         local functions = {
             AeroDynamicSlashVFX = function()
@@ -257,13 +251,9 @@ function Blocker:Init()
             functions[n]()
         end
         print(child:GetFullName())
-    end)
+    end))
     
-    local function insert(connection)
-        table.insert(self._connections, connection)
-    end
-    
-    insert(remotes.Freeze.OnClientEvent:Connect(function(ball, frozen, arg3 : boolean)
+    self:_insert(remotes.Freeze.OnClientEvent:Connect(function(ball, frozen, arg3 : boolean)
         if ball ~= self.ball then return end
         if frozen then
             self.delay = 5 + time()
@@ -272,10 +262,7 @@ function Blocker:Init()
         end
         Notify("Detected", "Freeze", 1)
     end))
-    insert(remotes.ParrySuccess.OnClientEvent:Connect(function()
-        -- game.SoundService:PlayLocalSound(self.vis.hitsound)
-    end))
-    insert(remotes.UseContinuityPortal.OnClientEvent:Connect(function(character, teleportCFrame, ball)
+    self:_insert(remotes.UseContinuityPortal.OnClientEvent:Connect(function(character, teleportCFrame, ball)
         if ball ~= self.ball then return end
         task.delay(0.65, function()
             self.portalCFrame = teleportCFrame
@@ -286,7 +273,7 @@ function Blocker:Init()
         Notify("Detected", "Portal", 1)
     end))
     
-    insert(remotes.PlrMartyrEffects.OnClientEvent:Connect(function(character0, character1, thawSec)
+    self:_insert(remotes.PlrMartyrEffects.OnClientEvent:Connect(function(character0, character1, thawSec)
         if character0 ~= self.currentTarget then return end
         self.delay = thawSec + time()
         self.maxVelocity = 100
@@ -297,28 +284,9 @@ function Blocker:Init()
         Notify("Detected", "Martyrdom", 1)
     end))
     
-    insert(self.ball.Destroying:Connect(function()
+    self:_insert(self.ball.Destroying:Connect(function()
         self:Destroy()
     end))
-    
-    local function isTimeToParry()
-        return (not self.delay and self.reachTime < self.timeToParry and self.currentTarget == localChar)
-            or (not self.delay
-                and autopredict
-                and self.maxVelocity > 100
-                and self.parryRate < 0.65 + ping()
-                and self.reachTimeFromMyTarget < self.maxTimeToParry / 2
-            )
-            
-            or (self.delay and time() > self.delay and self.currentTarget == localChar and self.maxTimeToMove < self.maxTimeToParry)
-            -- or (self.reachTime < 0.1625 and self.reachTimeFromTarget < self.maxTimeToParry and self.currentTarget ~= localChar)
-    end
-    
-    local function canSpam()
-        return self.parryRate < self.spamRate
-            and self.velocity.Magnitude > 0
-            or isOthersInvis()
-    end
     
     self._blocking = task.spawn(function()
         if localChar.Parent ~= workspace.Alive then return end
@@ -326,7 +294,7 @@ function Blocker:Init()
         while autoparry do
             task.wait()
             
-            if isTimeToParry()
+            if self:_isTimeToParry()
                 and (self.currentTarget == localChar or self.lastTarget == localChar)
             then
                 if autospam and not self.matched then
@@ -334,7 +302,7 @@ function Blocker:Init()
                     local deflection
                     local heartbeatConnection
                     
-                    if canSpam() then
+                    if self:_canSpam() then
                         Notify("Spam", "Progressing")
                         targetPos = self.myTarget:GetPivot().Position
                         deflection = CFrame.new(localRoot.Position, targetPos)
@@ -344,7 +312,7 @@ function Blocker:Init()
                             deflection = CFrame.new(localRoot.Position, targetPos)
                         end)
                         
-                        while canSpam() do
+                        while self:_canSpam() do
                             if not self._spammingThread then
                                 self._spammingThread = coroutine.running()
                             end
@@ -406,12 +374,18 @@ end
 function Blocker:FindTarget(mode)
     local target = localChar
     
+    local filteredCharacters = {}
+    for _, alive in workspace.Alive:GetChildren() do
+        if isTeammate(alive, localChar)
+            or isInvis(alive)
+            or alive == localChar
+        then continue end
+        table.insert(filteredCharacters, alive)
+    end
+    
     if mode == 0 then
         local minDistance = 1000
-        for _, alive in workspace.Alive:GetChildren() do
-            if isTeammate(alive, localChar) then continue end
-            if isInvis(alive) then continue end
-            if alive == localChar then continue end
+        for _, alive in filteredCharacters do
             local distance = (alive:GetPivot().Position - localRoot.Position).Magnitude
             if distance <= minDistance then
                 target = alive
@@ -420,10 +394,7 @@ function Blocker:FindTarget(mode)
         end
     elseif mode == 1 then
         local maxDistance = 0
-        for _, alive in workspace.Alive:GetChildren() do
-            if isTeammate(alive, localChar) then continue end
-            if isInvis(alive) then continue end
-            if alive == localChar then continue end
+        for _, alive in filteredCharacters do
             local distance = (alive:GetPivot().Position - localRoot.Position).Magnitude
             if distance > maxDistance then
                 target = alive
@@ -434,11 +405,10 @@ function Blocker:FindTarget(mode)
         target = nil
         
         if not standoff then
-            for _, alive in workspace.Alive:GetChildren() do
-                if isTeammate(alive, localChar) then continue end
-                if isInvis(alive) then continue end
-                if alive == localChar then continue end
-                local cd = cooldowns[alive.Name] or 0
+            for _, alive in filteredCharacters do
+                if alive:FindFirstChild("HumanoidRootPart") == nil then continue end
+                
+                local cd = cooldowns[alive.HumanoidRootPart] or 0
                 if cd == 0 then continue end
                 
                 local targetPos = alive:GetPivot().Position
@@ -459,10 +429,7 @@ function Blocker:FindTarget(mode)
         return target, matched
     elseif mode == 3 then
         local minPointing = 1
-        for _, alive in workspace.Alive:GetChildren() do
-            if isTeammate(alive, localChar) then continue end
-            if isInvis(alive) then continue end
-            if alive == localChar then continue end
+        for _, alive in filteredCharacters do
             local a = (alive:GetPivot().Position - localRoot.Position).Unit
             local b = a:Dot(alive.Pointer.Value.LookVector)
             if b < minPointing then
@@ -472,10 +439,7 @@ function Blocker:FindTarget(mode)
         end
     elseif mode == 4 then
         local minDistance = 1000
-        for _, alive in workspace.Alive:GetChildren() do
-            if isTeammate(alive, localChar) then continue end
-            if isInvis(alive) then continue end
-            if alive == localChar then continue end
+        for _, alive in filteredCharacters do
             local distance = (alive:GetPivot().Position - mouse.Hit.Position).Magnitude
             if distance <= minDistance then
                 target = alive
@@ -488,18 +452,55 @@ function Blocker:FindTarget(mode)
 end
 
 function Blocker:Destroy()
-    self._updateConnection:Disconnect()
     for _, vis in self.vis do
         vis:Destroy()
     end
     for _, connection in self._connections do
         connection:Disconnect()
     end
+    for _, tasking in self._tasks do
+        task.cancel(tasking)
+    end
+    for _, coro in self._coroutines do
+        coroutine.close(coro)
+    end
     pcall(task.cancel, self._blocking)
     pcall(coroutine.close, self._spammingThread)
 end
 
-local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wizard"))()
+function Blocker:_insert(connection)
+    table.insert(self._connections, connection)
+end
+
+function Blocker:_isTimeToParry()
+    return (not self.delay and self.reachTime < self.timeToParry and self.currentTarget == localChar)
+        or (not self.delay
+            and autopredict
+            and self.maxVelocity > 100
+            and self.parryRate < 0.65
+            and self.reachTimeFromMyTarget < self.maxTimeToParry / 2
+        )
+        
+        or (self.delay and time() > self.delay and self.currentTarget == localChar and self.maxTimeToMove < self.maxTimeToParry)
+        -- or (self.reachTime < 0.1625 and self.reachTimeFromTarget < self.maxTimeToParry and self.currentTarget ~= localChar)
+end
+
+function Blocker:_onAttrChanged(attributeName)
+    if attributeName == "target" then
+        local value = self.ball:GetAttribute(attributeName)
+        if value == "" then return end
+        self.lastTarget = self.currentTarget
+        self.currentTarget = workspace.Alive:FindFirstChild(value)
+    end
+end
+
+function Blocker:_canSpam()
+    return self.parryRate < self.spamRate
+        and self.velocity.Magnitude > 0
+        or isOthersInvis()
+end
+
+local UI = loadstring(game:HttpGet("https://gitee.com/xiaoxuxu233/mirror/raw/master/wizard.lua"))()
 local window = UI:NewWindow("Unnamed")
 local main = window:NewSection("Main")
 
@@ -522,9 +523,9 @@ main:CreateToggle("Auto-Parry", function(enabled)
     table.insert(
         connections,
         remotes.ParryAttemptAll.OnClientEvent:Connect(function(_, character)
-            if character.Parent ~= workspace.Alive then return end
+            if character.Parent ~= workspace.Alive or character:FindFirstChild("HumanoidRootPart") == nil then return end
             
-            cooldowns[character.Name] = 1.3
+            cooldowns[character.HumanoidRootPart] = 1.3
         end)
     )
     table.insert(
@@ -538,7 +539,7 @@ main:CreateToggle("Auto-Parry", function(enabled)
     table.insert(
         connections,
         remotes.ParrySuccessAll.OnClientEvent:Connect(function(_, hrp)
-            cooldowns[hrp.Parent.Name] = 0
+            cooldowns[hrp] = 0
         end)
     )
     table.insert(
@@ -546,26 +547,11 @@ main:CreateToggle("Auto-Parry", function(enabled)
         remotes.EndCD.OnClientEvent:Connect(function()
             standoff = false
             table.clear(cooldowns)
-            
-            if afkOnRounding then
-                remotes.ChangedAfkMode:FireServer(false)
-            end
-        end)
-    )
-    table.insert(
-        connections,
-        remotes.PlrHellHookCompleted.OnClientEvent:Connect(function(hooker, isHooked)
-            print("PlrHellHookCompleted", hooker, `({hooker:GetFullName()})`, isHooked)
-            -- if isHooked and hooker == globalHooker and globalHooked == localChar then
-                -- globalHooker, globalHooked = nil, nil
-                -- localChar:PivotTo(hooker:GetPivot())
-            -- end
         end)
     )
     table.insert(
         connections,
         remotes.PlrHellHooked.OnClientEvent:Connect(function(hooker : Player, hooked : Model)
-            -- globalHooker, globalHooked = hooker, hooked
             print("PlrHellHooked", hooker, `({hooker:GetFullName()})`, hooked, `({hooked:GetFullName()})`)
             if hooked == localChar then
                 localChar:PivotTo(hooker.Character:GetPivot())
@@ -582,13 +568,6 @@ main:CreateToggle("Auto-Parry", function(enabled)
             elseif swapped == localChar then
                 swapped:PivotTo(swapper:GetPivot())
             end
-        end)
-    )
-    
-    table.insert(
-        connections,
-        remotes.GotSwapped.OnClientEvent:Connect(function(...)
-            print("GotSwapped:", ...)
         end)
     )
     
@@ -618,16 +597,11 @@ main:CreateToggle("Auto-Parry", function(enabled)
         blockers[newBall]:Init()
         newBall.Destroying:Connect(function()
             blockers[newBall] = nil
-            globalHooker, globalHooked = nil, nil
         end)
-        if afkOnRounding then
-            remotes.ChangedAfkMode:FireServer(true)
-        end
     end
     table.insert(
         connections,
         remotes.BallAdded.OnClientEvent:Connect(ballAdded)
-        -- workspace.Balls.ChildAdded:Connect(ballAdded)
     )
     
     for _, ball in workspace.Balls:GetChildren() do
@@ -651,10 +625,6 @@ main:CreateToggle("Auto-Parry", function(enabled)
     end
 end)
 
-main:CreateToggle("Auto-Predict", function(enabled)
-    autopredict = enabled
-end)
-
 main:CreateToggle("Auto-Spam", function(enabled)
     autospam = enabled
 end)
@@ -665,10 +635,6 @@ end)
 
 main:CreateToggle("Auto-Aim", function(enabled)
     autotargeting = enabled
-end)
-
-main:CreateToggle("Auto-Move", function(enabled)
-    automoving = enabled
 end)
 
 main:CreateToggle("Manual Spam", function(enabled)
@@ -720,7 +686,6 @@ main:CreateButton("强制优化", function()
     
     for _, v in workspace:GetChildren() do
         if table.find(blacklist, v.Name) then continue end
-        -- if not table.find(whitelist, v.Name) then continue end
         if v == workspace.CurrentCamera then continue end
         pcall(v.Destroy, v)
     end
@@ -730,8 +695,4 @@ main:CreateButton("强制优化", function()
             v:Destroy()
         end
     end
-end)
-
-main:CreateToggle("AFK On Round", function(enabled)
-    afkOnRounding = enabled
 end)
