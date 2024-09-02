@@ -185,14 +185,6 @@ function Blocker:Init()
             pcall(coroutine.close, self._spammingThread)
         end
         
-        if automoving then
-            local target = self.currentTarget
-            if target == localChar then
-                target = self.myTarget
-            end
-            localChar.Humanoid:MoveTo(getPositionWithVelocity(target, 0.1625))
-        end
-        
         local text = ""
         for index, value in self do
             if type(value) == "number" then
@@ -336,7 +328,7 @@ function Blocker:Init()
             end
             
             if self._parryDatetime
-                and time() - self._parryDatetime > 0.65
+                and time() - self._parryDatetime > 1.3
                 and self.currentTarget == nil
             then
                 self._parryDatetime = nil
@@ -475,7 +467,6 @@ end
 function Blocker:_isTimeToParry()
     return (not self.delay and self.reachTime < self.timeToParry and self.currentTarget == localChar)
         or (not self.delay
-            and autopredict
             and self.maxVelocity > 100
             and self.parryRate < 0.65
             and self.reachTimeFromMyTarget < self.maxTimeToParry / 2
