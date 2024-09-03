@@ -87,6 +87,106 @@ function ping()
     return LocalPlayer:GetNetworkPing()
 end
 
+local AntiAbilityRemoteFunctions = {
+	Freeze = function(self, ball, frozen)
+		if ball ~= self.ball then return end
+        if frozen then
+            self.delay = 5 + time()
+        else
+            self.delay = nil
+        end
+	end,
+	UseContinuityPortal = function(self, character, teleportCFrame, ball)
+        if ball ~= self.ball then return end
+        task.delay(0.65, function()
+            self.portalCFrame = teleportCFrame
+        end)
+        task.delay(2, function()
+            self.portalCFrame = nil
+        end)
+    end,
+    PlrMartyrEffects = function(self, character0, character1, thawSec)
+        if character0 ~= self.currentTarget then return end
+        self.delay = thawSec + time()
+        self.maxVelocity = 100
+        task.delay(thawSec + 1, function()
+            self.maxVelocity = 0
+        end)
+    end,
+	PlrEventSingularity = function(self, launcher)
+        self.delay = 4 + time()
+    end,
+}
+
+local SupportedAntiAbilityRemotes = {}
+for _, remote in remotes:GetChildren() do
+	if AntiAbilityRemoteFunctions[remote.Name] ~= nil then
+		table.insert(SupportedAntiAbilityRemotes, remote)
+	end
+end
+
+local AntiAbilityInstancesFunctions = {
+	AeroDynamicSlashVFX = function(self)
+		self.delay = 0.05 + time()
+		self.maxVelocity *= 3.8
+		Notify("Detected", "Aerodynamic", 1)
+		
+		local s = time()
+		
+		task.spawn(function()
+			while child.Parent and self.velocity.Y < 200 and time() - s < 1.6 do
+				self.delay += RunService.Heartbeat:Wait()
+			end
+			self.maxVelocity = 0
+			Notify("Detected", "Aerodynamic " .. time() - s , 1)
+		end)
+	end,
+	At2 = function(self)
+		-- Telekinesis
+		self.delay = 1.7 + time()
+		-- self.maxVelocity *= 1.75
+		Notify("Detected", "Telekinesis", 1)
+		local s = time()
+		task.spawn(function()
+			task.wait(0.1)
+			repeat
+				RunService.Heartbeat:Wait()
+			until self.velocity.Magnitude ~= 0 or not self.ball.Parent
+			Notify("Detected", "Telekinesis " .. time() - s, 1)
+			self.delay = nil
+			self.maxVelocity = 0
+		end)
+	end,
+	CLONE_ATTACHMENT = function(self)
+		-- Slashes of Fury
+		-- 35 slashes
+		-- this is untested
+		Notify("Detected", "Slashes of Fury", 1)
+
+		local count = 0
+		local lastParryTime = time()
+
+		self.manualSpamming = true
+		self.delay = 1 + time()
+		
+		local parryConnection = remotes.ParrySuccessAll.OnClientEvent:Connect(function(_, hrp)
+			count += 1
+			lastParryTime = time()
+			self.maxVelocity += 50
+			self.delay += 1
+		end)
+
+		repeat
+			task.wait()
+		until count >= 33 or time() - lastParryTime > 1
+
+		self.maxVelocity = 0
+		self.delay = nil
+		self.manualSpamming = nil
+		parryConnection:Disconnect()
+	end,
+}
+
 local Blocker = {}
 Blocker.__index = Blocker
 
@@ -153,11 +253,15 @@ function Blocker:Init()
         self.increase = self.velocity.Magnitude * (1 / 60)
         self.maxIncrease = self.maxVelocity * (1 / 60)
         
-        if autotargeting then
-            self.myTarget, self.matched = self:FindTarget(2)
-        else
-            self.myTarget = self:FindTarget(4)
-        end
+		if not lockingTarget then
+			if autotargeting then
+				self.myTarget, self.matched = self:FindTarget(2)
+			else
+				self.myTarget = self:FindTarget(4)
+			end
+		else
+			self.myTarget = lockingTarget
+		end
         
         local targetPos = getPositionWithVelocity(self.myTarget, 0.1625)
         local targetDist = (localPos - targetPos).Magnitude
@@ -202,83 +306,18 @@ function Blocker:Init()
     self:_onAttrChanged("target")
     self:_insert(self.ball.ChildAdded:Connect(function(child)
         local n = child.Name
-        local functions = {
-            AeroDynamicSlashVFX = function()
-                self.delay = 0.05 + time()
-                self.maxVelocity *= 3.8
-                Notify("Detected", "Aerodynamic", 1)
-                
-                local s = time()
-                
-                task.spawn(function()
-                    while child.Parent and self.velocity.Y < 200 and time() - s < 1.6 do
-                        self.delay += RunService.Heartbeat:Wait()
-                    end
-                    self.maxVelocity = 0
-                    Notify("Detected", "Aerodynamic " .. time() - s , 1)
-                end)
-            end,
-            At2 = function()
-                -- Telekinesis
-                self.delay = 1.7 + time()
-                -- self.maxVelocity *= 1.75
-                Notify("Detected", "Telekinesis", 1)
-                local s = time()
-                task.spawn(function()
-                    task.wait(0.1)
-                    repeat
-                        RunService.Heartbeat:Wait()
-                    until self.velocity.Magnitude ~= 0 or not self.ball.Parent
-                    Notify("Detected", "Telekinesis " .. time() - s, 1)
-                    self.delay = nil
-                    self.maxVelocity = 0
-                end)
-            end,
-            CLONE_ATTACHMENT = function()
-                -- Slashes of Fury
-                -- 34 slashes
-                Notify("Detected", "Slashes of Fury", 1)
-                child.ChildAdded:Connect(function(count)
-                    Notify("Slashes of Fury", count.Name, 1)
-                end)
-            end,
-        }
-        if functions[n] then
-            functions[n]()
+        if AntiAbilityInstancesFunctions[n] then
+			coroutine.wrap(AntiAbilityInstancesFunctions[n])(self)
         end
         print(child:GetFullName())
     end))
     
-    self:_insert(remotes.Freeze.OnClientEvent:Connect(function(ball, frozen, arg3 : boolean)
-        if ball ~= self.ball then return end
-        if frozen then
-            self.delay = 5 + time()
-        else
-            self.delay = nil
-        end
-        Notify("Detected", "Freeze", 1)
-    end))
-    self:_insert(remotes.UseContinuityPortal.OnClientEvent:Connect(function(character, teleportCFrame, ball)
-        if ball ~= self.ball then return end
-        task.delay(0.65, function()
-            self.portalCFrame = teleportCFrame
-        end)
-        task.delay(2, function()
-            self.portalCFrame = nil
-        end)
-        Notify("Detected", "Portal", 1)
-    end))
-    
-    self:_insert(remotes.PlrMartyrEffects.OnClientEvent:Connect(function(character0, character1, thawSec)
-        if character0 ~= self.currentTarget then return end
-        self.delay = thawSec + time()
-        self.maxVelocity = 100
-        task.delay(thawSec + 1, function()
-            self.maxVelocity = 0
-        end)
-        
-        Notify("Detected", "Martyrdom", 1)
-    end))
+	for _, remote in SupportedAntiAbilityRemotes do
+		self:_insert(remote.OnClientEvent:Connect(function(...)
+			Notify("Supported Ability Detected", remote.Name, 1)
+			coroutine.wrap(AntiAbilityRemoteFunctions[remote.Name])(self, ...)
+		end))
+	end
     
     self:_insert(self.ball.Destroying:Connect(function()
         self:Destroy()
@@ -490,6 +529,7 @@ function Blocker:_canSpam()
     return self.parryRate < self.spamRate
         and self.velocity.Magnitude > 0
         or isOthersInvis()
+		or self.manualSpamming
 end
 
 local UI = loadstring(game:HttpGet("https://gitee.com/xiaoxuxu233/mirror/raw/master/wizard.lua"))()
@@ -562,6 +602,21 @@ main:CreateToggle("Auto-Parry", function(enabled)
             end
         end)
     )
+
+    table.insert(
+        connections,
+        remotes.PlrConfidenceTaunted.OnClientEvent:Connect(function(launcher)
+			if launcher == LocalPlayer then return end
+            lockingTarget = launcher.Character
+        end)
+    )
+
+    table.insert(
+        connections,
+        remotes.ConfidentTarget.OnClientEvent:Connect(function(...)
+			lockingTarget = nil
+        end)
+    )
     
     localChar = LocalPlayer.Character
     localRoot = localChar and localChar.PrimaryPart
@@ -630,14 +685,9 @@ main:CreateToggle("Auto-Aim", function(enabled)
 end)
 
 main:CreateToggle("Manual Spam", function(enabled)
-    manualspamming = enabled
-    
-    while manualspamming do
-        task.wait()
-        for _ = 1, 15 do
-            Parry(LocalPlayer.Character, CFrame.identity, true)
-        end
-    end
+   	for _, blocker in blockers do
+		blocker.manualSpamming = enabled
+	end
 end)
 
 main:CreateToggle("低特效模式", function(enabled)
@@ -691,25 +741,16 @@ end)
 
 local enabledPropChangedConnections = {}
 main:CreateToggle("观赏模式", function(enabled)
-	if not enabled then
-		for i, connection in enabledPropChangedConnections do
-			connection:Disconnect()
-			enabledPropChangedConnections[i] = nil
-		end
-	end
 	local blacklist = {
 		"Hotbar"
 	}
 	for _, gui in LocalPlayer.PlayerGui:GetChildren() do
 		if table.find(blacklist, gui.Name) then continue end
 		if not gui:IsA("ScreenGui") then continue end
-		if not gui.Enabled and not gui:GetAttribute("AlwaysDisabled") then
-			gui:SetAttribute("AlwaysDisabled", true)
+		if gui.Enabled then
+			gui:SetAttribute("AlwaysEnabled", true)
 		end
-		if gui:GetAttribute("AlwaysDisabled") then continue end
+		if not gui:GetAttribute("AlwaysEnabled") then continue end
 		gui.Enabled = not enabled
-		table.insert(enabledPropChangedConnections, gui:GetPropertyChangedSignal("Enabled"):Connect(function()
-			gui.Enabled = not enabled
-		end))
 	end
 end)
