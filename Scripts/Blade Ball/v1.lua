@@ -78,6 +78,9 @@ do
         
         attemptRE:FireServer(0, deflection.Rotation, characterPositions, ARRAY, someBoolean)
     end
+	function getParryRE()
+		return attemptRE
+	end
 end
 
 function ping()
@@ -289,37 +292,34 @@ function Blocker:Init()
             if self:_isTimeToParry()
                 and (self.currentTarget == localChar or self.lastTarget == localChar)
             then
-                if autospam and not self.matched then
-                    local targetPos
-                    local deflection
-                    local heartbeatConnection
-                    
-                    if self:_canSpam() then
-                        Notify("Spam", "Progressing")
-                        targetPos = self.myTarget:GetPivot().Position
-                        deflection = CFrame.new(localRoot.Position, targetPos)
-                        self.spamming = true
-                        heartbeatConnection = RunService.Heartbeat:Connect(function()
-                            targetPos = self.myTarget:GetPivot().Position
-                            deflection = CFrame.new(localRoot.Position, targetPos)
-                        end)
+                if autospam and not self.matched and self:_canSpam() then
+                    Notify("Spam", "Progressing")
+                	self.spamming = true
+
+					local parryRE = getParryRE()
+					local hitTime, deflection, relations, offsets = 0, CFrame.new(localRoot.Position, self.myTarget:GetPivot().Position), {}, {0, 0}
+
+					for _, char in workspace.Alive:GetChildren() do
+						relations[alive.Name] = char ~= self.myTarget and Vector3.one * math.huge or Vector3.zero
+					end
+
+					local heartbeatConnection = RunService.Heartbeat:Connect(function()
+						deflection = CFrame.new(localRoot.Position, self.myTarget:GetPivot().Position)
+					end)
                         
-                        while self:_canSpam() do
-                            if not self._spammingThread then
-                                self._spammingThread = coroutine.running()
-                            end
-                            for _ = 1, 2 do
-                                Parry(self.myTarget, deflection)
-                            end
-                            task.wait()
-                        end
-                        
-                        self.spamming = nil
-                        if heartbeatConnection then
-                            heartbeatConnection:Disconnect()
-                            continue
-                        end
-                    end
+					while self:_canSpam() do
+						if not self._spammingThread then
+							self._spammingThread = coroutine.running()
+						end
+						for _ = 1, 2 do
+							parryRE:FireServer(hitTime, deflection, relations, offsets)
+						end
+						task.wait()
+					end
+					
+					self.spamming = nil
+					heartbeatConnection:Disconnect()
+					continue
                 end
             
                 self:Parry()
