@@ -312,7 +312,7 @@ function Blocker:Init()
 						if not self._spammingThread then
 							self._spammingThread = coroutine.running()
 						end
-						for _ = 1, 2 do
+						for _ = 1, 10 do
 							parryRE:FireServer(hitTime, deflection, relations, offsets)
 						end
 						task.wait()
@@ -687,4 +687,29 @@ main:CreateButton("强制优化", function()
             v:Destroy()
         end
     end
+end)
+
+local enabledPropChangedConnections = {}
+main:CreateToggle("观赏模式", function(enabled)
+	if not enabled then
+		for i, connection in enabledPropChangedConnections do
+			connection:Disconnect()
+			enabledPropChangedConnections[i] = nil
+		end
+	end
+	local blacklist = {
+		"Hotbar"
+	}
+	for _, gui in LocalPlayer.PlayerGui:GetChildren() do
+		if table.find(blacklist, gui.Name) then continue end
+		if not gui:IsA("ScreenGui") then continue end
+		if not gui.Enabled and not gui:GetAttribute("AlwaysDisabled") then
+			gui:SetAttribute("AlwaysDisabled", true)
+		end
+		if gui:GetAttribute("AlwaysDisabled") then continue end
+		gui.Enabled = not enabled
+		table.insert(enabledPropChangedConnections, gui:GetPropertyChangedSignal("Enabled"):Connect(function()
+			gui.Enabled = not enabled
+		end))
+	end
 end)
