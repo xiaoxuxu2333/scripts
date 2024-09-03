@@ -128,6 +128,7 @@ function Blocker:Init()
     self.vis.text.Color = Color3.new(1, 1, 1)
     self.vis.text.Center = false
     self.vis.text.Position = Vector2.new(50, 50)
+	self.vis.text.Text = ""
     self.vis.text.Visible = true
     
     self:_insert(RunService.PostSimulation:Connect(function(delta)
@@ -188,13 +189,13 @@ function Blocker:Init()
             pcall(coroutine.close, self._spammingThread)
         end
         
-        local text = ""
-        for index, value in self do
-            if type(value) == "number" then
-                text = text .. index .. ": " .. value .. "\n"
-            end
-        end
-        self.vis.text.Text = text
+        -- local text = ""
+        -- for index, value in self do
+        --     if type(value) == "number" then
+        --         text = text .. index .. ": " .. value .. "\n"
+        --     end
+        -- end
+        -- self.vis.text.Text = text
     end))
     
     self:_insert(self.ball.AttributeChanged:Connect(function(...) self:_onAttrChanged(...) end))
@@ -300,7 +301,7 @@ function Blocker:Init()
 					local hitTime, deflection, relations, offsets = 0, CFrame.new(localRoot.Position, self.myTarget:GetPivot().Position), {}, {0, 0}
 
 					for _, char in workspace.Alive:GetChildren() do
-						relations[alive.Name] = char ~= self.myTarget and Vector3.one * math.huge or Vector3.zero
+						relations[char.Name] = char ~= self.myTarget and Vector3.one * math.huge or Vector3.zero
 					end
 
 					local heartbeatConnection = RunService.Heartbeat:Connect(function()
