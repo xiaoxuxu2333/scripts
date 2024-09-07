@@ -21,9 +21,7 @@ main:CreateToggle("自动刷钱", function(enabled)
 	goldFarming = enabled
 	if not goldFarming then return end
 	
-	local status = {
-		["每分钟赚钱"] = "0",
-	}
+	local status = {}
 	
 	local text = Drawing.new("Text")
 	text.Outline = true
@@ -34,25 +32,16 @@ main:CreateToggle("自动刷钱", function(enabled)
 	text.Text = ""
 	text.Visible = true
 	
-	local oldFunction
-	oldFunction = hookmetamethod(game, "__namecall", function(self, ...)
-		if self == claimRiverResultsGoldEvent and not checkcaller() and getnamecallmethod() == "FireServer" then
-			return
-		end
-		
-		return oldFunction(self, ...)
-	end)
+	local platform = Instance.new("Part")
+	platform.Anchored = true
+	platform.Size = Vector3.new(4, 1, 4)
+	platform.Parent = workspace
 	
 	local oldGold = localPlayer.Data.Gold.Value
 	local timer = 0
 	local root = localPlayer.Character.HumanoidRootPart
-	local starterCFrame = root.CFrame
-	local anchoredCFrame = starterCFrame
-	local unlockChest
+	local unlockChest, characterAdded
 	local update = RunService.Heartbeat:Connect(function()
-		root.CFrame = anchoredCFrame
-		root.AssemblyLinearVelocity = Vector3.zero
-		
 		if unlockChest and root.Parent then
 			firetouchinterest(normalStages.TheEnd.GoldenChest.Trigger, root, 0)
 		end
@@ -60,7 +49,8 @@ main:CreateToggle("自动刷钱", function(enabled)
 		local t = time()
 		if t - timer > 60 then
 			timer = t
-			status["每分钟赚钱"] = tostring(localPlayer.Data.Gold.Value - oldGold)
+			status["每分钟金条"] = localPlayer.Data.Gold.Value - oldGold
+			status["每小时金条"] = (localPlayer.Data.Gold.Value - oldGold) * 60
 			oldGold = localPlayer.Data.Gold.Value
 		end
 		
@@ -75,47 +65,65 @@ main:CreateToggle("自动刷钱", function(enabled)
 		text.Text = info
 	end)
 	
-	local characterAdded = localPlayer.CharacterAdded:Connect(function(newChar)
+	local connections = {}
+	
+	table.insert(connections, localPlayer.CharacterAdded:Connect(function(newChar)
 		root = newChar:WaitForChild("HumanoidRootPart")
-	end)
+		platform.CFrame = normalStages.CaveStage1.DarknessPart.CFrame
+		root.CFrame = platform.CFrame * CFrame.new(0, 10, 0)
+	end))
+	
+	table.insert(connections, localPlayer.PlayerGui.ChildAdded:Connect(function(newGui)
+		if newGui.Name == "RiverResultsGui" then
+			newGui:WaitForChild("LocalScript").Enabled = false
+		end
+	end))
+	
+	table.insert(connections, game.Lighting.Changed:Connect(function()
+		if game.Lighting.FogEnd < 100000 then
+		    unlockChest = nil
+		end
+	end))
 	
 	while goldFarming do
 	    local startTime = time()
 		local char = localPlayer.Character
 		
 		for i = 1, 10 do
-			if i == 4 then
-				unlockChest = true
+			if i == 2 then
+			    task.delay(1.5, function()
+				    unlockChest = true
+				end)
 			elseif i == 10 then
 			    claimRiverResultsGoldEvent:FireServer()
 			end
 			
 			local caveStage = normalStages["CaveStage" .. i]
-			anchoredCFrame = caveStage.DarknessPart.CFrame
+			platform.CFrame = caveStage.DarknessPart.CFrame
+			root.CFrame = platform.CFrame * CFrame.new(0, 10, 0)
 			do
 				local duration = 2
 				while duration > 0 and goldFarming do
 					duration -= task.wait()
 				end
 			end
+			status["此次用时时间"] = nil
 		end
 		
 		if not goldFarming then break end
-		
-		local newChar = localPlayer.Character ~= char or localPlayer.CharacterAdded:Wait()
-		unlockChest = nil
-		anchoredCFrame = starterCFrame
 		do
-			local duration = 5
+			local duration = 3.15
 			while duration > 0 and goldFarming do
 				duration -= task.wait()
 			end
 		end
-		status["此次用时时间"] = tostring(math.floor(time() - startTime)) .. "秒"
+		status["此次用时时间"] = string.format("%.4f秒", time() - startTime)
 	end
 	
-	hookmetamethod(game, "__namecall", oldFunction)
 	update:Disconnect()
-	characterAdded:Disconnect()
+	for _, connection in connections do
+	    connection:Disconnect()
+	end
 	text:Destroy()
+	platform:Destroy()
 end)
