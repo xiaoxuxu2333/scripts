@@ -28,7 +28,10 @@ for _, data in localPlayer.OtherData:GetChildren() do
 	end
 end
 
-local UI = loadstring(game:HttpGet("https://gitee.com/xiaoxuxu233/mirror/raw/master/wizard.lua"))()
+local UILib = getgenv().UILibCache or loadstring(game:HttpGet("https://gitee.com/xiaoxuxu233/mirror/raw/master/wizard.lua"))
+getgenv().UILibCache = UILib
+
+local UI = UILib()
 local window = UI:NewWindow("Unnamed")
 local main = window:NewSection("主要功能")
 
@@ -47,35 +50,37 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	text.Text = ""
 	text.Visible = true
 
-	local platform = Instance.new("Part")
-	platform.Anchored = true
-	platform.Size = Vector3.new(4, 1, 4)
-	platform.Parent = workspace
-
 	local oldGold = gold.Value
-	local timer = 0
+	local startTime = time()
 	local root = localPlayer.Character.HumanoidRootPart
 	local unlockChest, characterAdded
 	local connections = {}
+	local lockPosition = stagePositions[1]
+	local chestCloseTime, chestOpenTime = 0, 0
+	
+	for _, stage in stagesData do
+		stage:SetAttribute("TriggerStart", 0)
+		stage:SetAttribute("TriggerDuration", 0)
+		table.insert(connections, stage.Changed:Connect(function(str)
+			if str ~= "" then
+				stage:SetAttribute("TriggerDuration", time() - stage:GetAttribute("TriggerStart"))
+			else
+				stage:SetAttribute("TriggerDuration", 0)
+			end
+		end))
+	end
 
 	table.insert(connections, RunService.Heartbeat:Connect(function()
 		if unlockChest and root.Parent then
-			chestTrigger.CFrame = root.CFrame
-			--firetouchinterest(chestTrigger, root, 0)
+			-- chestTrigger.CFrame = root.CFrame
+			firetouchinterest(chestTrigger, root, 0)
 		else
-			chestTrigger.CFrame = chestTriggerOriginCFrame
-		end
-		
-		local t = time()
-		if t - timer > 60 then
-			timer = t
-			status["每分钟金条"] = gold.Value - oldGold
-			status["每小时金条"] = (gold.Value - oldGold) * 60
-			oldGold = gold.Value
+			-- chestTrigger.CFrame = chestTriggerOriginCFrame
 		end
 		
 		for i = 1, #stagesData do
-			status[i] = stagesData[i].Value
+			local triggerDuration = stagesData[i]:GetAttribute("TriggerDuration")
+			status[i] = triggerDuration > 0 and string.format("用时 %.2f 秒", triggerDuration) or ""
 		end
 		
 		local info = ""
@@ -86,9 +91,36 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	end))
 
 	table.insert(connections, localPlayer.CharacterAdded:Connect(function(newChar)
+	    startTime = time()
+		oldGold = gold.Value
+		
 		root = newChar:WaitForChild("HumanoidRootPart")
-		platform.CFrame = stagePositions[1]
-		root.CFrame = platform.CFrame * CFrame.new(0, 10, 0)
+		RunService.Heartbeat:Wait()
+		root.CFrame = lockPosition
+		for _ = 1, 5 do task.wait() end
+		root.Anchored = true
+	end))
+	
+	table.insert(connections, localPlayer.CharacterRemoving:Connect(function()
+		chestCloseTime = time()
+		status["宝箱用时"] = string.format("%.2f秒", chestCloseTime - chestOpenTime)
+		unlockChest = nil
+		claimRiverResultsGoldEvent:FireServer()
+		
+		local tempStartTime = startTime
+		local tempOldGold = oldGold
+		gold.Changed:Wait()
+		
+		local earned = gold.Value - tempOldGold
+		local spentTime = time() - tempStartTime
+		local earnedPreMinute = earned / spentTime * 60
+		local earnedPreHour = earnedPreMinute * 60
+		local earnedPreDay = earnedPreHour * 24
+		
+		status["总用时"] = string.format("%.2f秒", spentTime)
+		status["每分钟金条"] = string.format("%.0f", earnedPreMinute)
+		status["每小时金条"] = string.format("%.0f", earnedPreHour)
+		status["每天金条"] = string.format("%.0f", earnedPreDay)
 	end))
 
 	table.insert(connections, localPlayer.PlayerGui.ChildAdded:Connect(function(newGui)
@@ -99,41 +131,40 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 
 	table.insert(connections, game.Lighting.Changed:Connect(function()
 		if game.Lighting.FogEnd < 100000 then
-			unlockChest = nil
+			chestOpenTime = time()
 		end
 	end))
 
 	while goldFarming do
-		local startTime = time()
-		local char = localPlayer.Character
-		
+		-- 13.5秒宝箱时间
 		for i = 1, 9 do
 			if not goldFarming then break end
-			if i == 3 then
-				task.delay(0.5, function()
+			if i == 2 then
+				task.delay(1.75, function()
 					unlockChest = true
 				end)
 			end
 			
-			platform.CFrame = stagePositions[i]
-			root.CFrame = platform.CFrame * CFrame.new(0, 10, 0)
-			task.wait(i ~= 1 and 2 or 7.6)
+			root.Anchored = false
+			lockPosition = stagePositions[i]
+			root.CFrame = lockPosition
+			for _ = 1, 5 do task.wait() end
+			root.Anchored = true
+			stagesData[i]:SetAttribute("TriggerStart", time())
+			task.wait(i ~= 1 and 2 or 6.5)
 		end
-
+		
 		while unlockChest and goldFarming do
 			task.wait()
 		end
-		claimRiverResultsGoldEvent:FireServer()
-
-		status["用时时间"] = string.format("%.4f秒", time() - startTime)
 	end
 
 	for _, connection in connections do
 		connection:Disconnect()
 	end
 	text:Destroy()
-	platform:Destroy()
 	chestTrigger.CFrame = chestTriggerOriginCFrame
+	root.Anchored = false
 end)
 
 main:CreateToggle("自动刷金块", function(enabled)
@@ -150,23 +181,44 @@ main:CreateToggle("自动刷金块", function(enabled)
 	text.Position = Vector2.new(50, 50)
 	text.Text = ""
 	text.Visible = true
-
-	local platform = Instance.new("Part")
-	platform.Anchored = true
-	platform.Size = Vector3.new(4, 1, 4)
-	platform.Parent = workspace
-
-	local oldGold = goldBlock.Value
-	local timer = 0
+	
+	local startTime = time()
+	local oldGoldBlock = goldBlock.Value
 	local root = localPlayer.Character.HumanoidRootPart
 	local characterAdded
-
 	local connections = {}
+	local lockPosition = stagePositions[1]
+	local chestCloseTime, chestOpenTime = 0, 0
 
 	table.insert(connections, localPlayer.CharacterAdded:Connect(function(newChar)
+	    startTime = time()
+		oldGoldBlock = goldBlock.Value
+		
 		root = newChar:WaitForChild("HumanoidRootPart")
-		platform.CFrame = stagePositions[1]
-		root.CFrame = platform.CFrame * CFrame.new(0, 10, 0)
+		RunService.Heartbeat:Wait()
+		root.CFrame = lockPosition
+		for _ = 1, 5 do task.wait() end
+		root.Anchored = true
+	end))
+	
+	table.insert(connections, localPlayer.CharacterRemoving:Connect(function()
+		chestCloseTime = time()
+		status["宝箱用时"] = string.format("%.2f秒", chestCloseTime - chestOpenTime)
+		
+		local tempStartTime = startTime
+		local tempOldGold = oldGoldBlock
+		goldBlock.Changed:Wait()
+		
+		local earned = goldBlock.Value - tempOldGold
+		local spentTime = time() - tempStartTime
+		local earnedPreMinute = earned / spentTime * 60
+		local earnedPreHour = earnedPreMinute * 60
+		local earnedPreDay = earnedPreHour * 24
+		
+		status["总用时"] = string.format("%.2f秒", spentTime)
+		status["每分钟金块"] = string.format("%.0f", earnedPreMinute)
+		status["每小时金块"] = string.format("%.0f", earnedPreHour)
+		status["每天金块"] = string.format("%.0f", earnedPreDay)
 	end))
 
 	table.insert(connections, localPlayer.PlayerGui.ChildAdded:Connect(function(newGui)
@@ -174,23 +226,20 @@ main:CreateToggle("自动刷金块", function(enabled)
 			newGui:WaitForChild("LocalScript").Enabled = false
 		end
 	end))
-
-	platform.CFrame = stagePositions[1]
-	root.CFrame = platform.CFrame * CFrame.new(0, 10, 0)
-	task.wait(7.6)
+	
+	table.insert(connections, game.Lighting.Changed:Connect(function()
+		if game.Lighting.FogEnd < 100000 then
+			chestOpenTime = time()
+		end
+	end))
+	
+	root.CFrame = lockPosition
+	task.wait(2)
 
 	table.insert(connections, RunService.Heartbeat:Connect(function()
 		if root.Parent then
-			chestTrigger.CFrame = root.CFrame
-			--firetouchinterest(chestTrigger, root, 0)
-		end
-		
-		local t = time()
-		if t - timer > 60 then
-			timer = t
-			status["每分钟金块"] = goldBlock.Value - oldGold
-			status["每小时金块"] = (goldBlock.Value - oldGold) * 60
-			oldGold = goldBlock.Value
+			-- chestTrigger.CFrame = root.CFrame
+			firetouchinterest(chestTrigger, root, 0)
 		end
 		
 		local info = ""
@@ -203,11 +252,10 @@ main:CreateToggle("自动刷金块", function(enabled)
 	while goldBlockFarming do
 		task.wait()
 	end
-
+	
 	for _, connection in connections do
 		connection:Disconnect()
 	end
 	text:Destroy()
-	platform:Destroy()
 	chestTrigger.CFrame = chestTriggerOriginCFrame
 end)
