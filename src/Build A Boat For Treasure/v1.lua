@@ -147,7 +147,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 			
 			lockPosition = stagePositions[i]
 			stagesData[i]:SetAttribute("TriggerStart", time())
-			task.wait(i ~= 1 and 2 or 6.5)
+			task.wait(i ~= 1 and 2 or 6.75)
 		end
 		
 		while unlockChest and goldFarming do
