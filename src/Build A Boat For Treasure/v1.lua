@@ -108,8 +108,8 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		claimRiverResultsGoldEvent:FireServer()
 		
 		local tempStartTime = startTime
-		local tempOldGold = oldGold
 		gold.Changed:Wait()
+		local tempOldGold = oldGold
 		
 		local earned = gold.Value - tempOldGold
 		local spentTime = time() - tempStartTime
@@ -121,6 +121,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		status["每分钟金条"] = string.format("%.0f", earnedPreMinute)
 		status["每小时金条"] = string.format("%.0f", earnedPreHour)
 		status["每天金条"] = string.format("%.0f", earnedPreDay)
+		status["收入"] = earned
 	end))
 
 	table.insert(connections, localPlayer.PlayerGui.ChildAdded:Connect(function(newGui)
@@ -206,8 +207,8 @@ main:CreateToggle("自动刷金块", function(enabled)
 		status["宝箱用时"] = string.format("%.2f秒", chestCloseTime - chestOpenTime)
 		
 		local tempStartTime = startTime
-		local tempOldGold = oldGoldBlock
 		goldBlock.Changed:Wait()
+		local tempOldGold = oldGoldBlock
 		
 		local earned = goldBlock.Value - tempOldGold
 		local spentTime = time() - tempStartTime
