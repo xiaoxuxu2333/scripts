@@ -78,6 +78,9 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 			-- chestTrigger.CFrame = chestTriggerOriginCFrame
 		end
 		
+		root.CFrame = lockPosition
+		root.Velocity = Vector3.zero
+		
 		for i = 1, #stagesData do
 			local triggerDuration = stagesData[i]:GetAttribute("TriggerDuration")
 			status[i] = triggerDuration > 0 and string.format("用时 %.2f 秒", triggerDuration) or ""
@@ -95,10 +98,6 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		oldGold = gold.Value
 		
 		root = newChar:WaitForChild("HumanoidRootPart")
-		RunService.Heartbeat:Wait()
-		root.CFrame = lockPosition
-		for _ = 1, 5 do task.wait() end
-		root.Anchored = true
 	end))
 	
 	table.insert(connections, localPlayer.CharacterRemoving:Connect(function()
@@ -113,7 +112,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		
 		local earned = gold.Value - tempOldGold
 		local spentTime = time() - tempStartTime
-		local earnedPreMinute = earned / spentTime * 60
+		local earnedPreMinute = math.ceil(earned / spentTime * 60)
 		local earnedPreHour = earnedPreMinute * 60
 		local earnedPreDay = earnedPreHour * 24
 		
@@ -140,17 +139,13 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		-- 13.5秒宝箱时间
 		for i = 1, 9 do
 			if not goldFarming then break end
-			if i == 2 then
-				task.delay(1.75, function()
-					unlockChest = true
+			if i == 3 then
+			    task.delay(0.3, function()
+				    unlockChest = true
 				end)
 			end
 			
-			root.Anchored = false
 			lockPosition = stagePositions[i]
-			root.CFrame = lockPosition
-			for _ = 1, 5 do task.wait() end
-			root.Anchored = true
 			stagesData[i]:SetAttribute("TriggerStart", time())
 			task.wait(i ~= 1 and 2 or 6.5)
 		end
@@ -165,7 +160,6 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	end
 	text:Destroy()
 	chestTrigger.CFrame = chestTriggerOriginCFrame
-	root.Anchored = false
 end)
 
 main:CreateToggle("自动刷金块", function(enabled)
@@ -196,10 +190,6 @@ main:CreateToggle("自动刷金块", function(enabled)
 		oldGoldBlock = goldBlock.Value
 		
 		root = newChar:WaitForChild("HumanoidRootPart")
-		RunService.Heartbeat:Wait()
-		root.CFrame = lockPosition
-		for _ = 1, 5 do task.wait() end
-		root.Anchored = true
 	end))
 	
 	table.insert(connections, localPlayer.CharacterRemoving:Connect(function()
@@ -212,7 +202,7 @@ main:CreateToggle("自动刷金块", function(enabled)
 		
 		local earned = goldBlock.Value - tempOldGold
 		local spentTime = time() - tempStartTime
-		local earnedPreMinute = earned / spentTime * 60
+		local earnedPreMinute = math.ceil(earned / spentTime * 60)
 		local earnedPreHour = earnedPreMinute * 60
 		local earnedPreDay = earnedPreHour * 24
 		
@@ -242,6 +232,9 @@ main:CreateToggle("自动刷金块", function(enabled)
 			-- chestTrigger.CFrame = root.CFrame
 			firetouchinterest(chestTrigger, root, 0)
 		end
+		
+		root.CFrame = lockPosition
+		root.Velocity = Vector3.zero
 		
 		local info = ""
 		for stat, value in status do
