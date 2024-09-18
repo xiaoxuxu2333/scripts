@@ -62,9 +62,7 @@ do
         move = tonumber(more.Scale.TextBox.Text) or 2
         more.Scale.TextBox.Text = move
     end)
-    more.Scale.ArrowNext:Destroy()
-    more.Roundify:Destroy()
-    more.TextLabel:Destroy()
+    more.Scale.ArrowNext.Visible = false
     more.Parent = modeImage
     modeImage.Visible = false
     modeImage.Parent = gui
