@@ -41,10 +41,10 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 
 	local status = {
 	    ["最慢关卡用时"] = "2.45秒",
-	    ["最快总用时"] = "23.19秒",
-	    ["每分钟最高"] = "614金条",
-	    ["每小时最高"] = "36840金条",
-	    ["每天最高"] = "884160金条",
+	    ["最快总用时"] = "23秒",
+	    ["每分钟最高"] = "619金条",
+	    ["每小时最高"] = "37140金条",
+	    ["每天最高"] = "891360金条",
 	}
 
 	local text = Drawing.new("Text")
@@ -143,18 +143,19 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 
 	while goldFarming do
 		-- 13.5秒宝箱时间
-		-- 关卡用时超过2.45秒则错过
+		-- 关卡用时超过2.45秒则错过或延后
+		-- 第一关用时6.80秒则后面2.50秒
 		for i = 1, 9 do
 			if not goldFarming then break end
 			if i == 3 then
-				task.delay(0.385, function()
+				task.delay(0.43, function()
 					unlockChest = true
 				end)
 			end
 			
 			lockPosition = stagePositions[i]
 			stagesData[i]:SetAttribute("TriggerStart", time())
-			task.wait(i ~= 1 and 2 or 6.515)
+			task.wait(i ~= 1 and 2 or 6.505)
 		end
 		
 		while unlockChest and goldFarming do
