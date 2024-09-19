@@ -56,7 +56,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	text.Text = ""
 	text.Visible = true
 
-	local oldGold = gold.Value
+	local oldGold, oldGoldBlock = gold.Value, goldBlock.Value
 	local startTime = time()
 	local root = localPlayer.Character.HumanoidRootPart
 	local unlockChest, characterAdded
@@ -101,7 +101,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 
 	table.insert(connections, localPlayer.CharacterAdded:Connect(function(newChar)
 		startTime = time()
-		oldGold = gold.Value
+		oldGold, oldGoldBlock = gold.Value, goldBlock.Value
 		
 		root = newChar:WaitForChild("HumanoidRootPart")
 	end))
@@ -113,19 +113,23 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		claimRiverResultsGoldEvent:FireServer()
 		
 		local tempStartTime = startTime
-		gold.Changed:Wait()
-		local tempOldGold = oldGold
+		localPlayer.CharacterAdded:Wait()
 		
-		local earned = gold.Value - tempOldGold
+		local earned = gold.Value - oldGold
 		local spentTime = time() - tempStartTime
 		local earnedPreMinute = math.ceil(earned / spentTime * 60)
 		local earnedPreHour = earnedPreMinute * 60
 		local earnedPreDay = earnedPreHour * 24
 		
+		local bEarned = goldBlock.Value - oldGoldBlock
+		local bEarnedPreMinute = math.ceil(bEarned / spentTime * 60)
+		local bEarnedPreHour = bEarnedPreMinute * 60
+		local bEarnedPreDay = bEarnedPreHour * 24
+		
 		status["总用时"] = string.format("%.2f秒", spentTime)
-		status["每分钟金条"] = string.format("%.0f", earnedPreMinute)
-		status["每小时金条"] = string.format("%.0f", earnedPreHour)
-		status["每天金条"] = string.format("%.0f", earnedPreDay)
+		status["每分钟"] = string.format("%d金条、%d金块", earnedPreMinute, bEarnedPreMinute)
+		status["每小时"] = string.format("%d金条、%d金块", earnedPreHour, bEarnedPreHour)
+		status["每天"] = string.format("%d金条、%d金块", earnedPreDay, bEarnedPreDay)
 		status["收入"] = earned
 	end))
 
@@ -137,25 +141,31 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 
 	table.insert(connections, game.Lighting.Changed:Connect(function()
 		if game.Lighting.FogEnd < 100000 then
-			chestOpenTime = time()
+			-- chestOpenTime = time()
 		end
 	end))
-
+	
 	while goldFarming do
 		-- 13.5秒宝箱时间
-		-- 关卡用时超过2.45秒则错过或延后
+		-- 关卡用时超过2.5秒则错过或延后
 		-- 第一关用时6.80秒则后面2.50秒
-		for i = 1, 9 do
+		
+		lockPosition = stagePositions[1]
+		stagesData[1]:SetAttribute("TriggerStart", time())
+		task.wait(6.5055)
+		
+		for i = 2, 9 do
 			if not goldFarming then break end
 			if i == 3 then
-				task.delay(0.44, function()
+				task.delay(0.415, function()
 					unlockChest = true
+					chestOpenTime = time()
 				end)
 			end
 			
 			lockPosition = stagePositions[i]
 			stagesData[i]:SetAttribute("TriggerStart", time())
-			task.wait(i ~= 1 and 2 or 6.51)
+			task.wait(2)
 		end
 		
 		while unlockChest and goldFarming do
