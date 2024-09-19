@@ -40,11 +40,11 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	if not goldFarming then return end
 
 	local status = {
-	    ["最慢关卡用时"] = "2.45秒",
-	    ["最快总用时"] = "23秒",
-	    ["每分钟最高"] = "619金条",
-	    ["每小时最高"] = "37140金条",
-	    ["每天最高"] = "891360金条",
+	    -- ["最慢关卡用时"] = "2.45秒",
+	    -- ["最快总用时"] = "22.5秒",
+	    -- ["每分钟最高"] = "632金条",
+	    -- ["每小时最高"] = "37920金条",
+	    -- ["每天最高"] = "910080金条",
 	}
 
 	local text = Drawing.new("Text")
@@ -148,14 +148,14 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		for i = 1, 9 do
 			if not goldFarming then break end
 			if i == 3 then
-				task.delay(0.43, function()
+				task.delay(0.44, function()
 					unlockChest = true
 				end)
 			end
 			
 			lockPosition = stagePositions[i]
 			stagesData[i]:SetAttribute("TriggerStart", time())
-			task.wait(i ~= 1 and 2 or 6.505)
+			task.wait(i ~= 1 and 2 or 6.51)
 		end
 		
 		while unlockChest and goldFarming do
