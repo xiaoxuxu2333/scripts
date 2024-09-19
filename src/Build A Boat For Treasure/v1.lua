@@ -157,7 +157,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		for i = 2, 9 do
 			if not goldFarming then break end
 			if i == 3 then
-				task.delay(0.42, function()
+				task.delay(0.425, function()
 					unlockChest = true
 					chestOpenTime = time()
 				end)
