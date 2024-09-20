@@ -274,3 +274,9 @@ main:CreateToggle("自动刷金块", function(enabled)
 	text:Destroy()
 	chestTrigger.CFrame = chestTriggerOriginCFrame
 end)
+
+game:GetService("StarterGui"):SetCore("SendNotification", {
+	Title = "脚本",
+	Text = "已成功加载",
+	Duration = 3,
+})
