@@ -28,3 +28,9 @@ end
 
 onGuiAdded(LocalPlayer.PlayerGui.PropertiesToolDisplayGui)
 LocalPlayer.PlayerGui.ChildAdded:Connect(onGuiAdded)
+
+game:GetService("StarterGui"):SetCore("SendNotification", {
+	Title = "脚本",
+	Text = "已成功加载",
+	Duration = 3,
+})
