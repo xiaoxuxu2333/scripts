@@ -54,7 +54,18 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	text.Center = false
 	text.Position = Vector2.new(50, 50)
 	text.Text = ""
+	text.Size = 26
 	text.Visible = true
+
+	local text2 = Drawing.new("Text")
+	text2.Outline = true
+	text2.OutlineColor = Color3.new(0, 0, 0)
+	text2.Color = Color3.new(1, 1, 1)
+	text2.Center = false
+	text2.Position = Vector2.new(390, 50)
+	text2.Text = ""
+	text2.Size = 26
+	text2.Visible = true
 
 	local oldGoldBlock, goldBlock = goldBlockVal.Value, goldBlockVal.Value
 	local startTime = time()
@@ -63,6 +74,9 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	local connections = {}
 	local lockPosition = stagePositions[1]
 	local chestCloseTime, chestOpenTime = 0, 0
+	
+	local count = 0
+	local earns = table.create(100, 0)
 	
 	for _, stage in stagesData do
 		stage:SetAttribute("TriggerStart", 0)
@@ -96,6 +110,16 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 			info = info .. string.format("%s: %s\n", stat, value)
 		end
 		text.Text = info
+		
+		local start = "["
+		local info = ""
+		for i, earn in earns do
+			info = info .. (type(earn) == "string" and string.format("%s,", earn) or string.format("%.3d,", earn))
+			if i % 10 == 0 then
+			    info = info .. "\n "
+			end
+		end
+		text2.Text = start .. info:sub(0, #info - 2) .. "]"
 	end))
 
 	table.insert(connections, localPlayer.CharacterAdded:Connect(function(newChar)
@@ -128,6 +152,15 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		status["每小时"] = string.format("%d条、%d块", earnedPreHour, bEarnedPreHour)
 		status["每天"] = string.format("%d条、%d块", earnedPreDay, bEarnedPreDay)
 		status["收入"] = earned
+		
+		earns[1 + (count % 100)] = earned
+		count += 1
+		
+		if count % 100 == 0 then
+		    for i, v in earns do
+		        earns[i] = 0
+		    end
+		end
 	end))
 
 	table.insert(connections, localPlayer.PlayerGui.ChildAdded:Connect(function(newGui)
@@ -155,7 +188,8 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		lockPosition = stagePositions[1]
 		stagesData[0]:SetAttribute("TriggerStart", time())
 		stagesData[1]:SetAttribute("TriggerStart", time())
-		task.wait(4.5055)
+		task.wait(4.45 --055
+		)
 		
 		for i = 1, 9 do
 			if not goldFarming then break end
@@ -180,6 +214,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		connection:Disconnect()
 	end
 	text:Destroy()
+	text2:Destroy()
 	chestTrigger.CFrame = chestTriggerOriginCFrame
 end)
 
