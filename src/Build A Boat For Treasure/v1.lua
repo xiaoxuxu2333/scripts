@@ -56,7 +56,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	text.Center = false
 	text.Position = Vector2.new(50, 50)
 	text.Text = ""
-	text.Size = 26
+	text.Size = 14
 	text.Visible = true
 
 	local text2 = Drawing.new("Text")
@@ -66,7 +66,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	text2.Center = false
 	text2.Position = Vector2.new(390, 50)
 	text2.Text = ""
-	text2.Size = 26
+	text2.Size = 14
 	text2.Visible = true
 
 	local oldGoldBlock, goldBlock = goldBlockVal.Value, goldBlockVal.Value
@@ -192,16 +192,14 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		
 	    lockPosition = stagePositions[1]
 		stagesData[1]:SetAttribute("TriggerStart", time())
-		task.wait(4.25 + 2)
+		task.wait(4.46 + 2)
+		task.delay(4.46, function()
+		    unlockChest = true
+			chestOpenTime = time()
+		end)
 		
 		for i = 2, 9 do
 			if not goldFarming then break end
-			if i == 3 then
-				task.delay(0.46, function()
-					unlockChest = true
-					chestOpenTime = time()
-				end)
-			end
 			
 			lockPosition = stagePositions[i]
 			stagesData[i]:SetAttribute("TriggerStart", time())
