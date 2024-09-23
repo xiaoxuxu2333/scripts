@@ -28,6 +28,8 @@ for _, data in localPlayer.OtherData:GetChildren() do
 	end
 end
 
+local rng = Random.new()
+
 local UILib = getgenv().UILibCache or loadstring(game:HttpGet("https://gitee.com/xiaoxuxu233/mirror/raw/master/wizard.lua"))
 getgenv().UILibCache = UILib
 
@@ -92,17 +94,20 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 
 	table.insert(connections, RunService.Heartbeat:Connect(function()
 		if unlockChest and root.Parent then
-			-- chestTrigger.CFrame = root.CFrame
-			pcall(firetouchinterest, chestTrigger, root, 0)
+		    if cframeMethod then
+		        chestTrigger.CFrame = root.CFrame
+		    else
+		        pcall(firetouchinterest, chestTrigger, root, 0)
+		    end
 		else
-			-- chestTrigger.CFrame = chestTriggerOriginCFrame
+			chestTrigger.CFrame = chestTriggerOriginCFrame
 		end
 		
 		root.CFrame = lockPosition
 		root.Velocity = Vector3.zero
 		
 		local info = ""
-		for i = 0, #stagesData do
+		for i = 1, #stagesData do
 			local triggerDuration = stagesData[i]:GetAttribute("TriggerDuration")
 			info = info .. "关卡".. i ..": " .. (triggerDuration > 0 and string.format("用时 %.2f 秒", triggerDuration) or "") .. "\n"
 		end
@@ -153,14 +158,14 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		status["每天"] = string.format("%d条、%d块", earnedPreDay, bEarnedPreDay)
 		status["收入"] = earned
 		
-		earns[1 + (count % 100)] = earned
-		count += 1
-		
 		if count % 100 == 0 then
 		    for i, v in earns do
 		        earns[i] = 0
 		    end
 		end
+		
+		earns[1 + (count % 100)] = earned
+		count += 1
 	end))
 
 	table.insert(connections, localPlayer.PlayerGui.ChildAdded:Connect(function(newGui)
@@ -169,11 +174,11 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		end
 	end))
 
-	table.insert(connections, game.Lighting.Changed:Connect(function()
-		if game.Lighting.FogEnd < 100000 then
+	-- table.insert(connections, game.Lighting.Changed:Connect(function()
+		-- if game.Lighting.FogEnd < 100000 then
 			-- chestOpenTime = time()
-		end
-	end))
+		-- end
+	-- end))
 	
 	table.insert(connections, goldBlockVal.Changed:Connect(function(new)
 		oldGoldBlock = goldBlock
@@ -185,16 +190,14 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		-- 关卡用时超过2.5秒则错过或延后
 		-- 第一关用时6.80秒则后面2.50秒
 		
-		lockPosition = stagePositions[1]
-		stagesData[0]:SetAttribute("TriggerStart", time())
+	    lockPosition = stagePositions[1]
 		stagesData[1]:SetAttribute("TriggerStart", time())
-		task.wait(4.45 --055
-		)
+		task.wait(4.25 + 2)
 		
-		for i = 1, 9 do
+		for i = 2, 9 do
 			if not goldFarming then break end
 			if i == 3 then
-				task.delay(0.45, function()
+				task.delay(0.46, function()
 					unlockChest = true
 					chestOpenTime = time()
 				end)
@@ -284,10 +287,11 @@ main:CreateToggle("自动刷金块", function(enabled)
 	task.wait(2)
 
 	table.insert(connections, RunService.Heartbeat:Connect(function()
-		if root.Parent then
-			-- chestTrigger.CFrame = root.CFrame
-			firetouchinterest(chestTrigger, root, 0)
-		end
+		if cframeMethod then
+	        chestTrigger.CFrame = root.CFrame
+	    else
+	        pcall(firetouchinterest, chestTrigger, root, 0)
+	    end
 		
 		root.CFrame = lockPosition
 		root.Velocity = Vector3.zero
@@ -308,6 +312,10 @@ main:CreateToggle("自动刷金块", function(enabled)
 	end
 	text:Destroy()
 	chestTrigger.CFrame = chestTriggerOriginCFrame
+end)
+
+main:CreateToggle("修改宝箱坐标触发方法", function(enabled)
+    cframeMethod = enabled
 end)
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
