@@ -42,11 +42,11 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	if not goldFarming then return end
 
 	local status = {
-	    -- ["最慢关卡用时"] = "2.45秒",
-	    -- ["最快总用时"] = "22.5秒",
-	    -- ["每分钟最高"] = "632金条",
-	    -- ["每小时最高"] = "37920金条",
-	    -- ["每天最高"] = "910080金条",
+	    -- ["最慢关卡用时"] = "2.5秒",
+	    -- ["最快总用时"] = "22秒",
+	    -- ["每分钟最高"] = "647金条",
+	    -- ["每小时最高"] = "38820金条",
+	    -- ["每天最高"] = "931680金条",
 	}
 
 	local text = Drawing.new("Text")
@@ -126,7 +126,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		end
 		text2.Text = start .. info:sub(0, #info - 2) .. "]"
 	end))
-
+	
 	table.insert(connections, localPlayer.CharacterAdded:Connect(function(newChar)
 		startTime = time()
 		root = newChar:WaitForChild("HumanoidRootPart")
@@ -174,11 +174,11 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		end
 	end))
 
-	-- table.insert(connections, game.Lighting.Changed:Connect(function()
-		-- if game.Lighting.FogEnd < 100000 then
-			-- chestOpenTime = time()
-		-- end
-	-- end))
+	table.insert(connections, game.Lighting.Changed:Connect(function()
+		if game.Lighting.FogEnd < 100000 then
+			
+		end
+	end))
 	
 	table.insert(connections, goldBlockVal.Changed:Connect(function(new)
 		oldGoldBlock = goldBlock
@@ -192,7 +192,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		
 	    lockPosition = stagePositions[1]
 		stagesData[1]:SetAttribute("TriggerStart", time())
-		task.wait(4.4 + 2)
+		task.wait(4.46 + 2)
 		task.delay(2.46, function()
 		    unlockChest = true
 			chestOpenTime = time()
@@ -200,7 +200,6 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		
 		for i = 2, 9 do
 			if not goldFarming then break end
-			
 			lockPosition = stagePositions[i]
 			stagesData[i]:SetAttribute("TriggerStart", time())
 			task.wait(2)
@@ -235,7 +234,7 @@ main:CreateToggle("自动刷金块", function(enabled)
 	text.Visible = true
 	
 	local startTime = time()
-	local oldGoldBlock = goldBlockVal.Value
+	local oldGoldBlock, goldBlock = goldBlockVal.Value, goldBlockVal.Value
 	local root = localPlayer.Character.HumanoidRootPart
 	local characterAdded
 	local connections = {}
@@ -253,12 +252,10 @@ main:CreateToggle("自动刷金块", function(enabled)
 		chestCloseTime = time()
 		status["宝箱用时"] = string.format("%.2f秒", chestCloseTime - chestOpenTime)
 		
-		local tempStartTime = startTime
-		goldBlockVal.Changed:Wait()
-		local tempOldGold = oldGoldBlock
+		local spentTime = time() - startTime
+		status["总用时"] = string.format("%.2f秒", spentTime)
 		
-		local earned = goldBlockVal.Value - tempOldGold
-		local spentTime = time() - tempStartTime
+		local earned = goldBlockVal.Value - oldGoldBlock
 		local earnedPreMinute = math.ceil(earned / spentTime * 60)
 		local earnedPreHour = earnedPreMinute * 60
 		local earnedPreDay = earnedPreHour * 24
@@ -279,6 +276,11 @@ main:CreateToggle("自动刷金块", function(enabled)
 		if game.Lighting.FogEnd < 100000 then
 			chestOpenTime = time()
 		end
+	end))
+	
+	table.insert(connections, goldBlockVal.Changed:Connect(function(new)
+		oldGoldBlock = goldBlock
+		goldBlock = new
 	end))
 	
 	root.CFrame = lockPosition
