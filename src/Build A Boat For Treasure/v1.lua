@@ -192,8 +192,8 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 		
 	    lockPosition = stagePositions[1]
 		stagesData[1]:SetAttribute("TriggerStart", time())
-		task.wait(4.46 + 2)
-		task.delay(2.46, function()
+		task.wait(4.5075 + 2)
+		task.delay(2.4675, function()
 		    unlockChest = true
 			chestOpenTime = time()
 		end)
