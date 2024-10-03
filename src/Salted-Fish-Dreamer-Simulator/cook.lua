@@ -30,11 +30,9 @@ main:CreateToggle("自动吃", function(enabled)
     while getgenv().eating do
         for _, tool in LocalPlayer.Backpack:GetChildren() do
             tool.Parent = LocalPlayer.Character
-        end
-        for _, tool in LocalPlayer.Character:GetChildren() do
-            if tool:IsA("Tool") then
-                tool:Activate()
-            end
+            tool:Activate()
+            task.wait()
+            tool.Parent = LocalPlayer.Backpack
         end
         task.wait()
     end
