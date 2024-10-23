@@ -326,7 +326,7 @@ main:CreateToggle("自动刷糖果", function(enabled)
         if root then
             for _, house in workspace.Houses:GetChildren() do
                 if house:FindFirstChild("Door") and house.Door:FindFirstChild("DoorInnerTouch") then
-                    firetouchinterest(root, house.Door.DoorInnerTouch, 0)
+                    pcall(firetouchinterest, root, house.Door.DoorInnerTouch, 0)
                 end
             end
         end
