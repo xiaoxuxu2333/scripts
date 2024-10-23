@@ -54,7 +54,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	text.OutlineColor = Color3.new(0, 0, 0)
 	text.Color = Color3.new(1, 1, 1)
 	text.Center = false
-	text.Position = Vector2.new(50, 50)
+	text.Position = Vector2.new(64, 64)
 	text.Text = ""
 	text.Size = 14
 	text.Visible = true
@@ -64,7 +64,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	text2.OutlineColor = Color3.new(0, 0, 0)
 	text2.Color = Color3.new(1, 1, 1)
 	text2.Center = false
-	text2.Position = Vector2.new(390, 50)
+	text2.Position = Vector2.new(404, 64)
 	text2.Text = ""
 	text2.Size = 14
 	text2.Visible = true
@@ -93,7 +93,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	end
 
 	table.insert(connections, RunService.Heartbeat:Connect(function()
-		if unlockChest and root.Parent then
+		if unlockChest then
 		    if cframeMethod then
 		        chestTrigger.CFrame = root.CFrame
 		    else
@@ -186,7 +186,7 @@ main:CreateToggle("自动刷金条&块", function(enabled)
 	end))
 	
 	while goldFarming do
-		-- 13.5秒宝箱时间
+		-- 平均13.5秒宝箱时间
 		-- 关卡用时超过2.5秒则错过或延后
 		-- 第一关用时6.80秒则后面2.50秒
 		
@@ -229,7 +229,7 @@ main:CreateToggle("自动刷金块", function(enabled)
 	text.OutlineColor = Color3.new(0, 0, 0)
 	text.Color = Color3.new(1, 1, 1)
 	text.Center = false
-	text.Position = Vector2.new(50, 50)
+	text.Position = Vector2.new(64, 64)
 	text.Text = ""
 	text.Visible = true
 	
@@ -256,14 +256,14 @@ main:CreateToggle("自动刷金块", function(enabled)
 		status["总用时"] = string.format("%.2f秒", spentTime)
 		
 		local earned = goldBlockVal.Value - oldGoldBlock
-		local earnedPreMinute = math.ceil(earned / spentTime * 60)
+		local earnedPreMinute = earned / spentTime * 60
 		local earnedPreHour = earnedPreMinute * 60
 		local earnedPreDay = earnedPreHour * 24
 		
 		status["总用时"] = string.format("%.2f秒", spentTime)
-		status["每分钟金块"] = string.format("%.0f", earnedPreMinute)
-		status["每小时金块"] = string.format("%.0f", earnedPreHour)
-		status["每天金块"] = string.format("%.0f", earnedPreDay)
+		status["每分钟金块"] = string.format("%.2f", earnedPreMinute)
+		status["每小时金块"] = string.format("%.2f", earnedPreHour)
+		status["每天金块"] = string.format("%.2f", earnedPreDay)
 	end))
 
 	table.insert(connections, localPlayer.PlayerGui.ChildAdded:Connect(function(newGui)
@@ -314,8 +314,23 @@ main:CreateToggle("自动刷金块", function(enabled)
 	chestTrigger.CFrame = chestTriggerOriginCFrame
 end)
 
-main:CreateToggle("修改宝箱坐标触发方法", function(enabled)
-    cframeMethod = enabled
+main:CreateToggle("自动刷糖果", function(enabled)
+    candyFarming = enabled
+    
+    if not enabled then return end
+    
+    while candyFarming do
+        task.wait()
+        local root = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+        
+        if root then
+            for _, house in workspace.Houses:GetChildren() do
+                if house:FindFirstChild("Door") and house.Door:FindFirstChild("DoorInnerTouch") then
+                    firetouchinterest(root, house.Door.DoorInnerTouch, 0)
+                end
+            end
+        end
+    end
 end)
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
