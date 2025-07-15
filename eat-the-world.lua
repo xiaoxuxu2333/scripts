@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Events = ReplicatedStorage:WaitForChild("Events")
 local LocalPlayer = Players.LocalPlayer
 
-local UI = loadstring(game:HttpGet("https://gitee.com/xiaoxuxu233/mirror/raw/master/wizard.lua"))()
+local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wizard"))()
 
 local window = UI:NewWindow("吃吃世界")
 local main = window:NewSection("功能")
