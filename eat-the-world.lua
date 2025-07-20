@@ -63,18 +63,53 @@ main:CreateToggle("自动刷", function(enabled)
     autofarm = enabled
     
     coroutine.wrap(function()
+    	local text = Drawing.new("Text")
+    	text.Outline = true
+    	text.OutlineColor = Color3.new(0, 0, 0)
+    	text.Color = Color3.new(1, 1, 1)
+    	text.Center = false
+    	text.Position = Vector2.new(64, 64)
+    	text.Text = ""
+    	text.Size = 50
+    	text.Visible = true
+    	
+    	local startTime = tick()
+    	local eatTime = 0
+    	local lastEatTime = tick()
+        
         local timer = 0
+        local sellDebounce = false
+        local sellCount = 0
+        
         local bedrock = Instance.new("Part")
         bedrock.Anchored = true
         bedrock.Size = Vector3.new(2048, 1, 2048)
         bedrock.Parent = workspace
+        
+        LocalPlayer.Character:PivotTo(CFrame.new(0, LocalPlayer.Character.Humanoid.HipHeight * 2, 0))
+        
         while autofarm do
             local dt = task.wait()
             
+            local ran = tick() - startTime
+            local hours = math.floor(ran / 60 / 60)
+            local minutes = math.floor(ran / 60)
+            local seconds = math.floor(ran)
+            
+            local eatMinutes = math.floor(eatTime / 60)
+            local eatSeconds = math.floor(eatTime)
+            
+            text.Text = "吃饱用时：" .. string.format("%i分%i秒", eatMinutes % 60, eatSeconds % 60)
+                .. "\n出售次数：" .. sellCount
+                .. "\n已运行：" .. string.format("%i时%i分%i秒", hours, minutes % 60, seconds % 60)
+            
             if checkLoaded() then
-                LocalPlayer.Character:PivotTo(CFrame.new(0, LocalPlayer.Character.Humanoid.HipHeight * 2, 0))
-                if not workspace:FindFirstChild("Loading") then
-                    LocalPlayer.Character.Events.Grab:FireServer()
+                if workspace:FindFirstChild("Loading") then
+                    LocalPlayer.Character:PivotTo(CFrame.new(0, LocalPlayer.Character.Humanoid.HipHeight * 2, 0))
+                end
+                
+                if LocalPlayer.Character.Humanoid.FloorMaterial ~= Enum.Material.Air and not workspace:FindFirstChild("Loading") then
+                    LocalPlayer.Character.Events.Grab:FireServer(nil, true)
                 end
                 LocalPlayer.Character.Events.Eat:FireServer()
                 
@@ -89,14 +124,34 @@ main:CreateToggle("自动刷", function(enabled)
                 then
                     if timer < 5 then
                         LocalPlayer.Character.Events.Sell:FireServer()
+                        
+                        if not sellDebounce then
+                            local currentEatTime = tick()
+                            eatTime = currentEatTime - lastEatTime
+                            lastEatTime = currentEatTime
+                            
+                            sellCount += 1
+                        end
+                        
+                        sellDebounce = true
                     end
                     timer = 0
                     
                     changeMap()
+                elseif (LocalPlayer.Character.Size.Value < LocalPlayer.Upgrades.MaxSize.Value) then
+                    if sellDebounce then
+                        LocalPlayer.Character:PivotTo(CFrame.new(0, LocalPlayer.Character.Humanoid.HipHeight * 2, 0))
+                    end
+                    
+                    sellDebounce = false
                 end
+                
+                LocalPlayer.Character.LocalChunkManager.Enabled = false
             end
         end
         bedrock:Destroy()
+        LocalPlayer.Character.LocalChunkManager.Enabled = true
+        text:Destroy()
     end)()
 end)
 
@@ -143,10 +198,11 @@ main:CreateToggle("自动抛", function(enabled)
     end)()
 end)
 
-main:CreateToggle("自动升", function(enabled)
+main:CreateToggle("自动升大小", function(enabled)
     autoUpgradeSize = enabled
     
     coroutine.wrap(function()
+        game.CoreGui.PurchasePromptApp.Enabled = false
         while autoUpgradeSize do
             task.wait(1)
             local args = {
@@ -154,6 +210,55 @@ main:CreateToggle("自动升", function(enabled)
             }
             Events.PurchaseEvent:FireServer(unpack(args))
         end
+        game.CoreGui.PurchasePromptApp.Enabled = true
+    end)()
+end)
+
+main:CreateToggle("自动升移速", function(enabled)
+    autoUpgradeSpd = enabled
+    
+    coroutine.wrap(function()
+        game.CoreGui.PurchasePromptApp.Enabled = false
+        while autoUpgradeSpd do
+            task.wait(1)
+            local args = {
+            	"Speed"
+            }
+            Events.PurchaseEvent:FireServer(unpack(args))
+        end
+        game.CoreGui.PurchasePromptApp.Enabled = true
+    end)()
+end)
+
+main:CreateToggle("自动升乘数", function(enabled)
+    autoUpgradeMulti = enabled
+    
+    coroutine.wrap(function()
+        game.CoreGui.PurchasePromptApp.Enabled = false
+        while autoUpgradeMulti do
+            task.wait(1)
+            local args = {
+            	"Multiplier"
+            }
+            Events.PurchaseEvent:FireServer(unpack(args))
+        end
+        game.CoreGui.PurchasePromptApp.Enabled = true
+    end)()
+end)
+
+main:CreateToggle("自动升吃速", function(enabled)
+    autoUpgradeEat = enabled
+    
+    coroutine.wrap(function()
+        game.CoreGui.PurchasePromptApp.Enabled = false
+        while autoUpgradeEat do
+            task.wait(1)
+            local args = {
+            	"EatSpeed"
+            }
+            Events.PurchaseEvent:FireServer(unpack(args))
+        end
+        game.CoreGui.PurchasePromptApp.Enabled = true
     end)()
 end)
 
@@ -169,6 +274,8 @@ main:CreateToggle("自动领", function(enabled)
                 }
                 Events.RewardEvent:FireServer(unpack(args))
             end
+            
+            Events.SpinEvent:FireServer()
         end
     end)()
 end)
@@ -194,3 +301,24 @@ main:CreateToggle("移除地图", function(enabled)
         end
     end)()
 end)
+
+main:CreateToggle("黑屏模式", function(enabled)
+    blackScreenMode = enabled
+    
+    coroutine.wrap(function()
+        while blackScreenMode do
+            task.wait()
+            game.Lighting.Brightness = math.huge
+        end
+        game.Lighting.Brightness = 2
+    end)()
+end)
+
+-- local args = {
+	-- "Mega"
+-- }
+-- game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("RequestTeleport"):FireServer(unpack(args))
+
+-- game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("SpinEvent"):FireServer()
+
+-- Purchases: MaxSize, Speed, Multiplier, EatSpeed
