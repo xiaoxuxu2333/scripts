@@ -125,6 +125,7 @@ main:CreateToggle("自动刷", function(enabled)
             sell = events:WaitForChild("Sell")
             chunk = char:WaitForChild("CurrentChunk")
             sendTrack = char:WaitForChild("SendTrack")
+            pullSpeed = char:WaitForChild("PullSpeed")
             
             task.wait(0.3)
             if not autofarm then return end
@@ -164,6 +165,7 @@ main:CreateToggle("自动刷", function(enabled)
                 root.Anchored = false
                 eat:FireServer()
                 sendTrack:FireServer()
+                pullSpeed.Value = 10
                 
                 if chunk.Value then
                     timer = 0
@@ -211,6 +213,9 @@ main:CreateToggle("自动刷", function(enabled)
         local charAddConn = LocalPlayer.CharacterAdded:Connect(onCharAdd)
         while autofarm do
             local dt = task.wait()
+            if workspace:FindFirstChild("Loading") then
+                workspace.Loading:Destroy()
+            end
         end
         charAddConn:Disconnect()
         if autoConn then
