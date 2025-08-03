@@ -4,8 +4,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Events = ReplicatedStorage:WaitForChild("Events")
 local LocalPlayer = Players.LocalPlayer
 
-local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wizard"))()
+local UILib = getgenv().UILibCache or loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wizard"))()
+getgenv().UILibCache = UILib
 
+local UI = UILib()
 local window = UI:NewWindow("吃吃世界")
 local main = window:NewSection("功能")
 
@@ -42,6 +44,10 @@ end
 
 local function sizeGrowth(level)
     return math.floor(((level + 0.5) ^ 2 - 0.25) / 2 * 100)
+end
+
+local function teleportPos()
+    LocalPlayer.Character:PivotTo(CFrame.new(0, LocalPlayer.Character.Humanoid.HipHeight * 2, -100) * CFrame.Angles(0, math.rad(-90), 0))
 end
 
 main:CreateToggle("自动收", function(enabled)
@@ -89,12 +95,17 @@ main:CreateToggle("自动刷", function(enabled)
         
         local bedrock = Instance.new("Part")
         bedrock.Anchored = true
-        bedrock.Size = Vector3.new(2048, 1, 2048)
+        bedrock.Size = Vector3.new(256, 1, 256)
+        bedrock.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
         bedrock.Parent = workspace
-        
-        LocalPlayer.Character:PivotTo(CFrame.new(0, LocalPlayer.Character.Humanoid.HipHeight * 2, 0))
+
         LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.zero
         
+        local map, chunks = workspace:FindFirstChild("Map"), workspace:FindFirstChild("Chunks")
+        if map and chunks then
+            map.Parent, chunks.Parent = nil, nil
+        end
+
         task.wait(0.3)
         
         while autofarm do
@@ -113,15 +124,17 @@ main:CreateToggle("自动刷", function(enabled)
             local hourEarn = minuteEarn * 60
             local dayEarn = hourEarn * 24
             
-            text.Text = "吃饱用时：" .. string.format("%i分%i秒", eatMinutes % 60, eatSeconds % 60)
-                .. "\n出售次数：" .. sellCount
-                .. "\n每秒收益：" .. secondEarn
-                .. "\n每分钟收益：" .. minuteEarn
-                .. "\n每小时收益：" .. hourEarn
-                .. "\n每天收益：" .. dayEarn
-                .. "\n已运行：" .. string.format("%i时%i分%i秒", hours, minutes % 60, seconds % 60)
+            text.Text = "EatTime: " .. string.format("%im%is", eatMinutes % 60, eatSeconds % 60)
+                .. "\nSellCount: " .. sellCount
+                .. "\nSecondEarn: " .. secondEarn
+                .. "\nMinuteEarn: " .. minuteEarn
+                .. "\nHourEarn: " .. hourEarn
+                .. "\nDayEarn: " .. dayEarn
+                .. "\nRan: " .. string.format("%ih%im%is", hours, minutes % 60, seconds % 60)
             
             if checkLoaded() then
+                LocalPlayer.Character.Events.Grab:FireServer()
+                LocalPlayer.Character.HumanoidRootPart.Anchored = false
                 LocalPlayer.Character.Events.Eat:FireServer()
                 
                 if LocalPlayer.Character.CurrentChunk.Value then
@@ -150,73 +163,26 @@ main:CreateToggle("自动刷", function(enabled)
                     
                     changeMap()
                 elseif (LocalPlayer.Character.Size.Value < LocalPlayer.Upgrades.MaxSize.Value) then
-                    if sellDebounce then
-                        LocalPlayer.Character:PivotTo(CFrame.new(0, LocalPlayer.Character.Humanoid.HipHeight * 2, 0))
-                    end
-                    
                     sellDebounce = false
                 end
                 
                 LocalPlayer.Character.LocalChunkManager.Enabled = false
+
+                -- if workspace:FindFirstChild("Loading") then
+                --     teleportPos()
+                -- end
+                local x = (tick() * 100 % 256) - 128
+                local z = math.floor(tick() * 100 / 256 % 256) - 128
+
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(x, LocalPlayer.Character.HumanoidRootPart.Position.Y, z) * CFrame.Angles(0, math.rad(180), 0)
             end
+        end
+        if map and chunks then
+            map.Parent, chunks.Parent = workspace, workspace
         end
         bedrock:Destroy()
         LocalPlayer.Character.LocalChunkManager.Enabled = true
         text:Destroy()
-    end)()
-    
-    coroutine.wrap(function()
-        while autofarm do
-            local dt = task.wait()
-            
-            if checkLoaded() then
-                if workspace:FindFirstChild("Loading") then
-                    LocalPlayer.Character:PivotTo(CFrame.new(0, LocalPlayer.Character.Humanoid.HipHeight * 2, 0))
-                end
-                
-                LocalPlayer.Character.HumanoidRootPart.Anchored = false
-                LocalPlayer.Character.Events.Grab:FireServer()
-                
-                for _, v in LocalPlayer.Character:GetDescendants() do
-                    if v:IsA("BasePart") then
-                        v.LocalTransparencyModifier = 1
-                    end
-                end
-            end
-        end
-    end)()
-    
-    blackScreenMode = enabled
-    
-    coroutine.wrap(function()
-        while blackScreenMode do
-            task.wait()
-            game.Lighting.Brightness = math.huge
-            for _, v in workspace:GetDescendants() do
-                if v:IsA("BasePart") then
-                    v.LocalTransparencyModifier = 1
-                end
-            end
-        end
-        game.Lighting.Brightness = 2
-        for _, v in workspace:GetDescendants() do
-            if v:IsA("BasePart") then
-                v.LocalTransparencyModifier = 0
-            end
-        end
-    end)()
-    
-    keepRemoveMap = enabled
-    
-    coroutine.wrap(function()
-        if not enabled then return end
-        
-        local map, chunks = workspace.Map, workspace.Chunks
-        map.Parent, chunks.Parent = nil, nil
-        while keepRemoveMap do
-            task.wait()
-        end
-        map.Parent, chunks.Parent = workspace, workspace
     end)()
 end)
 
