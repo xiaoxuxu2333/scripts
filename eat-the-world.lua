@@ -126,7 +126,7 @@ main:CreateToggle("自动刷", function(enabled)
             chunk = char:WaitForChild("CurrentChunk")
             sendTrack = char:WaitForChild("SendTrack")
             
-            task.wait(10)
+            task.wait(0.3)
             if not autofarm then return end
             
             char:WaitForChild("LocalChunkManager").Enabled = false
