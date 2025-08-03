@@ -95,7 +95,7 @@ main:CreateToggle("自动刷", function(enabled)
         
         local bedrock = Instance.new("Part")
         bedrock.Anchored = true
-        bedrock.Size = Vector3.new(256, 1, 256)
+        bedrock.Size = Vector3.new(300, 1, 300)
         bedrock.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
         bedrock.Parent = workspace
 
@@ -124,6 +124,11 @@ main:CreateToggle("自动刷", function(enabled)
             local hourEarn = minuteEarn * 60
             local dayEarn = hourEarn * 24
             
+            local t = ran / math.pi
+            local r = -t * math.pi % 128
+            local x = math.cos(t) * r
+            local z = math.sin(t) * r
+            
             text.Text = "EatTime: " .. string.format("%im%is", eatMinutes % 60, eatSeconds % 60)
                 .. "\nSellCount: " .. sellCount
                 .. "\nSecondEarn: " .. secondEarn
@@ -131,6 +136,7 @@ main:CreateToggle("自动刷", function(enabled)
                 .. "\nHourEarn: " .. hourEarn
                 .. "\nDayEarn: " .. dayEarn
                 .. "\nRan: " .. string.format("%ih%im%is", hours, minutes % 60, seconds % 60)
+                .. "\nRadius: " .. r
             
             if checkLoaded() then
                 LocalPlayer.Character.Events.Grab:FireServer()
@@ -171,11 +177,10 @@ main:CreateToggle("自动刷", function(enabled)
                 -- if workspace:FindFirstChild("Loading") then
                 --     teleportPos()
                 -- end
-                local r = (ran * -10) / 32 % 128
-                local x = math.cos(ran) * r
-                local z = math.sin(ran) * r
                 
-                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(x, LocalPlayer.Character.HumanoidRootPart.Position.Y, z) * CFrame.Angles(0, math.atan2(x, z) * math.pi, 0)
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(x, LocalPlayer.Character.HumanoidRootPart.Position.Y, z) * CFrame.Angles(0, math.atan2(x, z) + math.pi, 0)
+                -- workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
+                -- workspace.CurrentCamera.CFrame = CFrame.new(Vector3.new(0, 100 + LocalPlayer.Character.Size.Value, 0), Vector3.zero)
             end
         end
         if map and chunks then
@@ -184,6 +189,7 @@ main:CreateToggle("自动刷", function(enabled)
         bedrock:Destroy()
         LocalPlayer.Character.LocalChunkManager.Enabled = true
         text:Destroy()
+        workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
     end)()
 end)
 
