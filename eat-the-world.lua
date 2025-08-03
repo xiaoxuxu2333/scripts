@@ -175,7 +175,7 @@ main:CreateToggle("自动刷", function(enabled)
                 local x = math.cos(ran) * r
                 local z = math.sin(ran) * r
                 
-                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(x, LocalPlayer.Character.HumanoidRootPart.Position.Y, z) * CFrame.Angles(0, math.atan2(x, z), 0)
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(x, LocalPlayer.Character.HumanoidRootPart.Position.Y, z) * CFrame.Angles(0, math.atan2(x, z) * math.pi, 0)
             end
         end
         if map and chunks then
