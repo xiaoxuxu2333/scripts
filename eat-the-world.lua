@@ -99,8 +99,6 @@ main:CreateToggle("自动刷", function(enabled)
         bedrock.Transparency = 1
         bedrock.Parent = workspace
 
-        LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.zero
-        
         local map, chunks = workspace:FindFirstChild("Map"), workspace:FindFirstChild("Chunks")
         if map and chunks then
             map.Parent, chunks.Parent = nil, nil
@@ -114,6 +112,7 @@ main:CreateToggle("自动刷", function(enabled)
             eat,
             grab,
             sell,
+            sendTrack,
             chunk,
             autoConn
         
@@ -125,10 +124,12 @@ main:CreateToggle("自动刷", function(enabled)
             grab = events:WaitForChild("Grab")
             sell = events:WaitForChild("Sell")
             chunk = char:WaitForChild("CurrentChunk")
+            sendTrack = char:WaitForChild("SendTrack")
+            
+            task.wait(10)
+            if not autofarm then return end
             
             char:WaitForChild("LocalChunkManager").Enabled = false
-            
-            if not autofarm then return end
             
             autoConn = game["Run Service"].Heartbeat:Connect(function(dt)
                 local ran = tick() - startTime
@@ -162,6 +163,7 @@ main:CreateToggle("自动刷", function(enabled)
                 grab:FireServer()
                 root.Anchored = false
                 eat:FireServer()
+                sendTrack:FireServer()
                 
                 if chunk.Value then
                     timer = 0
@@ -202,9 +204,9 @@ main:CreateToggle("自动刷", function(enabled)
         end
         
         if LocalPlayer.Character then
-            onCharAdd(LocalPlayer.Character)
+            task.spawn(onCharAdd, LocalPlayer.Character)
         else
-            onCharAdd(LocalPlayer.CharacterAdded:Wait())
+            task.spawn(onCharAdd, LocalPlayer.CharacterAdded:Wait())
         end
         local charAddConn = LocalPlayer.CharacterAdded:Connect(onCharAdd)
         while autofarm do
@@ -932,3 +934,530 @@ return module_8
 -- 202.5000000000001]]):split("\n")
 
 
+-- Decompiler will be improved VERY SOON!
+-- Decompiled with Konstant V2.1, a fast Luau decompiler made in Luau by plusgiant5 (https://discord.gg/brNTY8nX8t)
+-- Decompiled on 2025-08-03 09:44:11
+-- Luau version 6, Types version 3
+-- Time taken: 0.014768 seconds
+
+-- local LocalPlayer_upvr = game.Players.LocalPlayer
+-- local Parent_upvr = script.Parent
+-- local Humanoid_upvr = Parent_upvr:WaitForChild("Humanoid")
+-- local HumanoidRootPart_upvr = Parent_upvr:WaitForChild("HumanoidRootPart")
+-- local tbl_2_upvr = {}
+-- local CurrentChunk_upvr = script.Parent:WaitForChild("CurrentChunk")
+-- local Radius = script.Parent:WaitForChild("Radius")
+-- local Debris_upvr = game:GetService("Debris")
+-- local UserGameSettings_upvr = UserSettings():GetService("UserGameSettings")
+-- local function shuffle_upvr(arg1) -- Line 16, Named "shuffle"
+	-- for i = #arg1, 1, -1 do
+		-- local randint_from_1 = math.random(i)
+		-- arg1[i] = arg1[randint_from_1]
+		-- arg1[randint_from_1] = arg1[i]
+	-- end
+-- end
+-- local var16_upvw = 0
+-- local Part_upvr_2 = Instance.new("Part")
+-- Part_upvr_2.Name = "Barrier"
+-- Part_upvr_2.Massless = true
+-- Part_upvr_2.Transparency = 1
+-- Part_upvr_2.Size = Vector3.new(HumanoidRootPart_upvr.Size.X, 1, 0.1)
+-- local Weld_upvr = Instance.new("Weld")
+-- Weld_upvr.Parent = Part_upvr_2
+-- Weld_upvr.Part0 = HumanoidRootPart_upvr
+-- Weld_upvr.Part1 = Part_upvr_2
+-- Weld_upvr.C0 = CFrame.new(0, 0, -1.343)
+-- Part_upvr_2.CollisionGroup = "HRP"
+-- Part_upvr_2.CanQuery = false
+-- Part_upvr_2.CanTouch = false
+-- Instance.new("Attachment").Parent = Part_upvr_2
+-- Part_upvr_2.Parent = Parent_upvr
+-- function setBarrier() -- Line 51
+	-- --[[ Upvalues[5]:
+		-- [1]: Parent_upvr (readonly)
+		-- [2]: HumanoidRootPart_upvr (readonly)
+		-- [3]: Part_upvr_2 (readonly)
+		-- [4]: Weld_upvr (readonly)
+		-- [5]: LocalPlayer_upvr (readonly)
+	-- ]]
+	-- local LeftElbow = Parent_upvr.LeftLowerArm.LeftElbow
+	-- local LeftWrist = Parent_upvr.LeftHand.LeftWrist
+	-- local _ = HumanoidRootPart_upvr.CFrame:ToObjectSpace(Parent_upvr.LeftUpperArm.LeftElbowRigAttachment.WorldCFrame).Position
+	-- local var23 = ((LeftElbow.C0.Position - LeftElbow.C1.Position).Magnitude + (LeftWrist.C0.Position - LeftWrist.C1.Position).Magnitude + 0.29552020666133955 * ((HumanoidRootPart_upvr.CFrame:ToObjectSpace(Parent_upvr.UpperTorso.LeftShoulderRigAttachment.WorldCFrame).Position - HumanoidRootPart_upvr.CFrame:ToObjectSpace(Parent_upvr.LeftFoot.LeftAnkleRigAttachment.WorldCFrame).Position) * Vector3.new(0, 1, 1)).Magnitude) * 1.1
+	-- Part_upvr_2.Size = Vector3.new(HumanoidRootPart_upvr.Size.X * 1.3, 1, var23 + HumanoidRootPart_upvr.Size.Z / 2)
+	-- Part_upvr_2.Attachment.Position = Vector3.new(0, 0, -Part_upvr_2.Size.Z / 2 + 0.05)
+	-- Weld_upvr.C0 = CFrame.new(0, 0, -var23 + Part_upvr_2.Size.Z / 2)
+	-- LocalPlayer_upvr.CameraMaxZoomDistance = math.clamp(HumanoidRootPart_upvr.Size.X * 6, 60, 1000)
+-- end
+-- script.Parent:WaitForChild("PhysicalSize").Changed:Connect(function() -- Line 77
+	-- wait()
+	-- setBarrier()
+-- end)
+-- local Value_upvw_2 = CurrentChunk_upvr.Value
+-- local var26_upvw = math.ceil(Radius.Value) + 2
+-- Radius.Changed:Connect(function(arg1) -- Line 87
+	-- --[[ Upvalues[1]:
+		-- [1]: var26_upvw (read and write)
+	-- ]]
+	-- var26_upvw = math.ceil(arg1) + 2
+-- end)
+-- local var28_upvw = true
+-- local Particles = LocalPlayer_upvr:WaitForChild("Preferences"):FindFirstChild("Particles")
+-- if Particles then
+	-- var28_upvw = Particles.Value
+	-- Particles.Changed:Connect(function(arg1) -- Line 95
+		-- --[[ Upvalues[1]:
+			-- [1]: var28_upvw (read and write)
+		-- ]]
+		-- var28_upvw = arg1
+	-- end)
+-- end
+-- function connectMarkers(arg1) -- Line 100
+	-- --[[ Upvalues[8]:
+		-- [1]: HumanoidRootPart_upvr (readonly)
+		-- [2]: Parent_upvr (readonly)
+		-- [3]: var28_upvw (read and write)
+		-- [4]: Value_upvw_2 (read and write)
+		-- [5]: shuffle_upvr (readonly)
+		-- [6]: var26_upvw (read and write)
+		-- [7]: Debris_upvr (readonly)
+		-- [8]: tbl_2_upvr (readonly)
+	-- ]]
+	-- table.insert(tbl_2_upvr, arg1:GetMarkerReachedSignal("Start"):Connect(function() -- Line 101
+		-- --[[ Upvalues[1]:
+			-- [1]: HumanoidRootPart_upvr (copied, readonly)
+		-- ]]
+		-- HumanoidRootPart_upvr.Anchored = true
+	-- end))
+	-- table.insert(tbl_2_upvr, arg1:GetMarkerReachedSignal("GrabChunk"):Connect(function() -- Line 104
+		-- --[[ Upvalues[2]:
+			-- [1]: arg1 (readonly)
+			-- [2]: Parent_upvr (copied, readonly)
+		-- ]]
+		-- arg1:AdjustSpeed(Parent_upvr.PullSpeed.Value)
+	-- end))
+	-- table.insert(tbl_2_upvr, arg1:GetMarkerReachedSignal("PullChunk"):Connect(function() -- Line 109
+		-- --[[ Upvalues[6]:
+			-- [1]: arg1 (readonly)
+			-- [2]: var28_upvw (copied, read and write)
+			-- [3]: Value_upvw_2 (copied, read and write)
+			-- [4]: shuffle_upvr (copied, readonly)
+			-- [5]: var26_upvw (copied, read and write)
+			-- [6]: Debris_upvr (copied, readonly)
+		-- ]]
+		-- arg1:AdjustSpeed(1)
+		-- if not var28_upvw then
+		-- else
+			-- if not Value_upvw_2 then return end
+			-- if not Value_upvw_2:FindFirstChild("PullParticles") then return end
+			-- for i_4, v_3 in ipairs(Value_upvw_2.PullParticles:GetChildren()) do
+				-- if var26_upvw < i_4 then break end
+				-- v_3.DustParticle:Emit(5)
+				-- local clone_4_upvr = v_3:Clone()
+				-- clone_4_upvr:ClearAllChildren()
+				-- clone_4_upvr.Size /= 2
+				-- clone_4_upvr.Parent = workspace
+				-- task.delay(0.2, function() -- Line 124
+					-- --[[ Upvalues[1]:
+						-- [1]: clone_4_upvr (readonly)
+					-- ]]
+					-- clone_4_upvr.CanCollide = true
+				-- end)
+				-- local var41 = ((clone_4_upvr.Position - Value_upvw_2.PrimaryPart.Position) * Vector3.new(1, 0, 1) + Vector3.new(0, 6, 0)) * clone_4_upvr.Mass
+				-- clone_4_upvr:ApplyImpulse(var41 * 10)
+				-- clone_4_upvr:ApplyAngularImpulse(Vector3.new(var41.Z, 0, var41.X))
+				-- Debris_upvr:AddItem(clone_4_upvr, math.random(2, 3))
+			-- end
+		-- end
+	-- end))
+	-- table.insert(tbl_2_upvr, arg1.Stopped:Connect(function() -- Line 134
+		-- --[[ Upvalues[1]:
+			-- [1]: HumanoidRootPart_upvr (copied, readonly)
+		-- ]]
+		-- HumanoidRootPart_upvr.Anchored = false
+	-- end))
+-- end
+-- local var44_upvw
+-- local var45_upvw
+-- local var46_upvw
+-- var46_upvw = Humanoid_upvr:WaitForChild("Animator").AnimationPlayed:Connect(function(arg1) -- Line 143
+	-- --[[ Upvalues[3]:
+		-- [1]: var44_upvw (read and write)
+		-- [2]: var45_upvw (read and write)
+		-- [3]: var46_upvw (read and write)
+	-- ]]
+	-- if arg1.Priority == Enum.AnimationPriority.Action3 then
+		-- var44_upvw = arg1
+	-- elseif arg1.Priority == Enum.AnimationPriority.Action4 then
+		-- var45_upvw = arg1
+	-- end
+	-- if var45_upvw and var44_upvw then
+		-- var46_upvw:Disconnect()
+		-- script.Parent.SendTrack:FireServer()
+		-- setBarrier()
+		-- connectMarkers(var45_upvw)
+		-- connectMarkers(var44_upvw)
+	-- end
+-- end)
+-- local var47_upvw = false
+-- local var48_upvw = false
+-- local OverlapParams_new_result1_upvr = OverlapParams.new()
+-- local tbl = {workspace.Map, Parent_upvr}
+-- OverlapParams_new_result1_upvr.FilterDescendantsInstances = tbl
+-- tbl = false
+-- local var51_upvw = tbl
+-- local Gamepasses = LocalPlayer_upvr:WaitForChild("Gamepasses")
+-- local Eat_Players_upvw = Gamepasses:FindFirstChild("Eat Players")
+-- if Eat_Players_upvw then
+	-- var51_upvw = Eat_Players_upvw.Value
+	-- if not var51_upvw then
+		-- Eat_Players_upvw.Changed:Once(function(arg1) -- Line 178
+			-- --[[ Upvalues[1]:
+				-- [1]: var51_upvw (read and write)
+			-- ]]
+			-- var51_upvw = arg1
+		-- end)
+		-- -- KONSTANTWARNING: GOTO [249] #178
+	-- end
+-- else
+	-- local var56_upvw
+	-- var56_upvw = Gamepasses.ChildAdded:Connect(function(arg1) -- Line 184
+		-- --[[ Upvalues[3]:
+			-- [1]: var56_upvw (read and write)
+			-- [2]: Eat_Players_upvw (read and write)
+			-- [3]: var51_upvw (read and write)
+		-- ]]
+		-- if arg1.Name == "Eat Players" then
+			-- var56_upvw:Disconnect()
+			-- Eat_Players_upvw = arg1
+			-- var51_upvw = Eat_Players_upvw.Value
+			-- if not var51_upvw then
+				-- Eat_Players_upvw.Changed:Once(function(arg1_3) -- Line 190
+					-- --[[ Upvalues[1]:
+						-- [1]: var51_upvw (copied, read and write)
+					-- ]]
+					-- var51_upvw = arg1_3
+				-- end)
+			-- end
+		-- end
+	-- end)
+-- end
+-- local tbl_upvr = {
+	-- Grab = function(arg1) -- Line 199, Named "Grab"
+		-- --[[ Upvalues[7]:
+			-- [1]: var48_upvw (read and write)
+			-- [2]: var51_upvw (read and write)
+			-- [3]: Part_upvr_2 (readonly)
+			-- [4]: HumanoidRootPart_upvr (readonly)
+			-- [5]: Humanoid_upvr (readonly)
+			-- [6]: OverlapParams_new_result1_upvr (readonly)
+			-- [7]: var47_upvw (read and write)
+		-- ]]
+		-- -- KONSTANTERROR: [0] 1. Error Block 1 start (CF ANALYSIS FAILED)
+		-- local var60 = var48_upvw
+		-- -- KONSTANTERROR: [0] 1. Error Block 1 end (CF ANALYSIS FAILED)
+		-- -- KONSTANTERROR: [118] 85. Error Block 16 start (CF ANALYSIS FAILED)
+		-- -- KONSTANTWARNING: Failed to evaluate expression, replaced with nil [120.2]
+		-- arg1:FireServer(var47_upvw, var60, nil)
+		-- -- KONSTANTERROR: [118] 85. Error Block 16 end (CF ANALYSIS FAILED)
+		-- -- KONSTANTERROR: [124] 90. Error Block 15 start (CF ANALYSIS FAILED)
+		-- -- KONSTANTERROR: [124] 90. Error Block 15 end (CF ANALYSIS FAILED)
+	-- end;
+	-- Eat = function(arg1) -- Line 231, Named "Eat"
+		-- --[[ Upvalues[1]:
+			-- [1]: var16_upvw (read and write)
+		-- ]]
+		-- var16_upvw = 0
+		-- arg1:FireServer()
+	-- end;
+	-- Throw = function(arg1) -- Line 235, Named "Throw"
+		-- --[[ Upvalues[2]:
+			-- [1]: CurrentChunk_upvr (readonly)
+			-- [2]: UserGameSettings_upvr (readonly)
+		-- ]]
+		-- if CurrentChunk_upvr.Value and (not CurrentChunk_upvr.Value:FindFirstChild("Size") or CurrentChunk_upvr.Value:FindFirstChild("Humanoid")) then
+			-- UserGameSettings_upvr.RotationType = Enum.RotationType.CameraRelative
+		-- end
+		-- arg1:FireServer()
+	-- end;
+-- }
+-- local var62_upvw
+-- CurrentChunk_upvr.Changed:Connect(function(arg1) -- Line 245
+	-- --[[ Upvalues[7]:
+		-- [1]: UserGameSettings_upvr (readonly)
+		-- [2]: var62_upvw (read and write)
+		-- [3]: var28_upvw (read and write)
+		-- [4]: var16_upvw (read and write)
+		-- [5]: Value_upvw_2 (read and write)
+		-- [6]: Debris_upvr (readonly)
+		-- [7]: var26_upvw (read and write)
+	-- ]]
+	-- UserGameSettings_upvr.RotationType = Enum.RotationType.MovementRelative
+	-- if var62_upvw then
+		-- var62_upvw:Disconnect()
+	-- end
+	-- if not arg1 then
+	-- else
+		-- if not var28_upvw then return end
+		-- var16_upvw = 0
+		-- Value_upvw_2 = arg1
+		-- local var63_upvw
+		-- if Value_upvw_2:FindFirstChild("PullParticles") and 2 < #Value_upvw_2.PullParticles:GetChildren() then
+			-- var63_upvw = 2
+		-- end
+		-- if Value_upvw_2.Name ~= "TemplateChunk" then
+			-- print("found humanoid!")
+			-- var62_upvw = Value_upvw_2.ChildRemoved:Connect(function(arg1_4) -- Line 260
+				-- --[[ Upvalues[3]:
+					-- [1]: var16_upvw (copied, read and write)
+					-- [2]: Value_upvw_2 (copied, read and write)
+					-- [3]: Debris_upvr (copied, readonly)
+				-- ]]
+				-- if 15 < var16_upvw then
+				-- else
+					-- var16_upvw += 1
+					-- if not arg1_4:IsA("BasePart") then return end
+					-- if not Value_upvw_2.PrimaryPart then return end
+					-- local Part_upvr = Instance.new("Part")
+					-- Part_upvr.Size = arg1_4.Size
+					-- Part_upvr.Color = arg1_4.Color
+					-- Part_upvr.Parent = workspace
+					-- Part_upvr.CFrame = arg1_4.CFrame
+					-- Part_upvr.Transparency = 0
+					-- Debris_upvr:AddItem(Part_upvr, math.random(2, 3))
+					-- local clone_3 = game.ReplicatedStorage.BiteParticle:Clone()
+					-- Part_upvr.Orientation = Vector3.new(0, 0, 0)
+					-- clone_3.Parent = Part_upvr
+					-- clone_3.Color = ColorSequence.new(Part_upvr.Color)
+					-- clone_3:Emit(7)
+					-- Part_upvr.Size /= 2
+					-- Part_upvr.CanCollide = false
+					-- Part_upvr.CanQuery = false
+					-- Part_upvr.CanTouch = false
+					-- task.delay(0.2, function() -- Line 287
+						-- --[[ Upvalues[1]:
+							-- [1]: Part_upvr (readonly)
+						-- ]]
+						-- Part_upvr.CanCollide = true
+					-- end)
+					-- local var68 = ((Part_upvr.Position - Value_upvw_2.PrimaryPart.Position) * Vector3.new(1, 0, 1) + Vector3.new(0, 7, 0)) * Part_upvr.Mass
+					-- Part_upvr:ApplyImpulse(var68 * 5)
+					-- Part_upvr:ApplyAngularImpulse(Vector3.new(var68.Z, 0, var68.X))
+				-- end
+			-- end)
+			-- return
+		-- end
+		-- var62_upvw = Value_upvw_2.DescendantRemoving:Connect(function(arg1_5) -- Line 297
+			-- --[[ Upvalues[5]:
+				-- [1]: var16_upvw (copied, read and write)
+				-- [2]: var26_upvw (copied, read and write)
+				-- [3]: Value_upvw_2 (copied, read and write)
+				-- [4]: Debris_upvr (copied, readonly)
+				-- [5]: var63_upvw (read and write)
+			-- ]]
+			-- if not arg1_5:IsA("BasePart") then
+			-- else
+				-- if var26_upvw < var16_upvw then return end
+				-- var16_upvw += 1
+				-- local clone_2_upvr = arg1_5:Clone()
+				-- clone_2_upvr.Parent = workspace
+				-- Debris_upvr:AddItem(clone_2_upvr, math.random(2, 3))
+				-- if 0.5 < math.random() and 1 < var63_upvw then
+					-- clone_2_upvr:ClearAllChildren()
+					-- clone_2_upvr.Size /= 2
+					-- task.delay(0.2, function() -- Line 316
+						-- --[[ Upvalues[1]:
+							-- [1]: clone_2_upvr (readonly)
+						-- ]]
+						-- clone_2_upvr.CanCollide = true
+					-- end)
+					-- local var72 = ((clone_2_upvr.Position - Value_upvw_2.PrimaryPart.Position) * Vector3.new(1, 0, 1) + Vector3.new(0, 7, 0)) * clone_2_upvr.Mass
+					-- clone_2_upvr:ApplyImpulse(var72 * 5)
+					-- clone_2_upvr:ApplyAngularImpulse(Vector3.new(var72.Z, 0, var72.X))
+					-- return
+				-- end
+				-- clone_2_upvr.Transparency = 1
+				-- if 0.5 >= math.random() then
+				-- else
+				-- end
+				-- local clone = game.ReplicatedStorage.BiteParticle:Clone()
+				-- clone_2_upvr.Orientation = Vector3.new(0, 0, 0)
+				-- clone.Parent = clone_2_upvr
+				-- clone.Color = ColorSequence.new(clone_2_upvr.Color)
+				-- clone:Emit(10)
+			-- end
+		-- end)
+	-- end
+-- end)
+-- function initEvent(arg1) -- Line 345
+	-- --[[ Upvalues[2]:
+		-- [1]: tbl_upvr (readonly)
+		-- [2]: tbl_2_upvr (readonly)
+	-- ]]
+	-- local SOME_upvr = script.Parent.Events:FindFirstChild(arg1.Name)
+	-- if SOME_upvr then
+		-- local var75_upvr = tbl_upvr[arg1.Name]
+		-- local var76
+		-- if var75_upvr then
+			-- var76 = arg1.Event:Connect(function() -- Line 351
+				-- --[[ Upvalues[2]:
+					-- [1]: var75_upvr (readonly)
+					-- [2]: SOME_upvr (readonly)
+				-- ]]
+				-- var75_upvr(SOME_upvr)
+			-- end)
+		-- else
+			-- var76 = arg1.Event:Connect(function() -- Line 356
+				-- --[[ Upvalues[1]:
+					-- [1]: SOME_upvr (readonly)
+				-- ]]
+				-- SOME_upvr:FireServer()
+			-- end)
+		-- end
+		-- table.insert(tbl_2_upvr, var76)
+	-- end
+-- end
+-- for _, v in ipairs(game.ReplicatedStorage.LocalEvents:GetChildren()) do
+	-- initEvent(v)
+-- end
+-- game.ReplicatedStorage.LocalEvents.ChildAdded:Connect(initEvent)
+-- local RaycastParams_new_result1_upvr = RaycastParams.new()
+-- RaycastParams_new_result1_upvr.FilterType = Enum.RaycastFilterType.Whitelist
+-- RaycastParams_new_result1_upvr.FilterDescendantsInstances = {workspace.Map}
+-- local OverlapParams_new_result1_upvr_2 = OverlapParams.new()
+-- OverlapParams_new_result1_upvr_2.FilterType = Enum.RaycastFilterType.Whitelist
+-- OverlapParams_new_result1_upvr_2.FilterDescendantsInstances = {workspace.Map}
+-- local Loading_upvw = workspace:FindFirstChild("Loading")
+-- local MapTime_upvr = game.ReplicatedStorage.ServerSettings.MapTime
+-- workspace.ChildAdded:Connect(function(arg1) -- Line 378
+	-- --[[ Upvalues[2]:
+		-- [1]: MapTime_upvr (readonly)
+		-- [2]: Loading_upvw (read and write)
+	-- ]]
+	-- if arg1.Name == "Loading" then
+		-- wait(MapTime_upvr.Value + 2)
+		-- Loading_upvw = arg1
+	-- end
+-- end)
+-- local Value_upvw = game.ReplicatedStorage.ServerSettings.MapDuration.Value
+-- game.ReplicatedStorage.ServerSettings.MapDuration.Changed:Connect(function(arg1) -- Line 385
+	-- --[[ Upvalues[1]:
+		-- [1]: Value_upvw (read and write)
+	-- ]]
+	-- Value_upvw = arg1
+-- end)
+-- local var91_upvw = 100
+-- local var92_upvw = 100
+-- function updateMap(arg1) -- Line 393
+	-- --[[ Upvalues[2]:
+		-- [1]: var91_upvw (read and write)
+		-- [2]: var92_upvw (read and write)
+	-- ]]
+	-- local Bedrock = workspace.Map:WaitForChild("Bedrock", 10)
+	-- if Bedrock then
+		-- var91_upvw = Bedrock.Size.X / 2
+		-- var92_upvw = Bedrock.Size.Z / 2
+	-- end
+-- end
+-- game.ReplicatedStorage.ServerSettings.MapName.Changed:Connect(updateMap)
+-- local var95_upvw
+-- game.ReplicatedStorage.ServerSettings.MapTime.Changed:Connect(function(arg1) -- Line 406
+	-- --[[ Upvalues[5]:
+		-- [1]: var95_upvw (read and write)
+		-- [2]: HumanoidRootPart_upvr (readonly)
+		-- [3]: Value_upvw (read and write)
+		-- [4]: var91_upvw (read and write)
+		-- [5]: var92_upvw (read and write)
+	-- ]]
+	-- var95_upvw = arg1
+	-- if HumanoidRootPart_upvr.Position.Y < 0 and (Value_upvw - 15 < arg1 or math.abs(HumanoidRootPart_upvr.Position.X) < var91_upvw and math.abs(HumanoidRootPart_upvr.Position.Z) < var92_upvw) then
+		-- HumanoidRootPart_upvr.CFrame = CFrame.new(Vector3.new(0, 100, 0))
+	-- end
+-- end)
+-- local any_Connect_result1_upvw = game["Run Service"].Heartbeat:Connect(function() -- Line 419
+	-- --[[ Upvalues[8]:
+		-- [1]: Humanoid_upvr (readonly)
+		-- [2]: var48_upvw (read and write)
+		-- [3]: Part_upvr_2 (readonly)
+		-- [4]: RaycastParams_new_result1_upvr (readonly)
+		-- [5]: OverlapParams_new_result1_upvr_2 (readonly)
+		-- [6]: var47_upvw (read and write)
+		-- [7]: HumanoidRootPart_upvr (readonly)
+		-- [8]: Loading_upvw (read and write)
+	-- ]]
+	-- if Humanoid_upvr:GetState() == Enum.HumanoidStateType.Running then
+		-- var48_upvw = true
+		-- local workspace_Raycast_result1 = workspace:Raycast(Part_upvr_2.Attachment.WorldPosition, Part_upvr_2.CFrame.LookVector, RaycastParams_new_result1_upvr)
+		-- if workspace_Raycast_result1 then
+			-- if #workspace:GetPartBoundsInBox(Part_upvr_2.Attachment.WorldCFrame, Vector3.new(Part_upvr_2.Size.X, Part_upvr_2.Size.Y, 0.1), OverlapParams_new_result1_upvr_2) == 0 then
+				-- Part_upvr_2.CanCollide = true
+			-- end
+			-- if workspace_Raycast_result1.Distance < 0.2 then
+				-- var47_upvw = true
+				-- -- KONSTANTWARNING: GOTO [79] #57
+			-- end
+		-- else
+			-- var47_upvw = false
+		-- end
+	-- else
+		-- var48_upvw = false
+		-- var47_upvw = false
+		-- Part_upvr_2.CanCollide = false
+	-- end
+	-- if 5000 < HumanoidRootPart_upvr.Position.Magnitude then
+		-- HumanoidRootPart_upvr.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+		-- HumanoidRootPart_upvr.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+		-- HumanoidRootPart_upvr.CFrame = CFrame.new(0, 300, 0)
+	-- end
+	-- if not Loading_upvw then
+	-- else
+		-- if not Loading_upvw.Parent then return end
+		-- if HumanoidRootPart_upvr.Position.Y < Loading_upvw.Position.Y then
+			-- HumanoidRootPart_upvr.CFrame = CFrame.new(Vector3.new(Loading_upvw.Position.X, Loading_upvw.Position.Y + HumanoidRootPart_upvr.Size.Y + Humanoid_upvr.HipHeight, Loading_upvw.Position.Z))
+		-- end
+	-- end
+-- end)
+-- function disconnect() -- Line 455
+	-- --[[ Upvalues[3]:
+		-- [1]: var46_upvw (read and write)
+		-- [2]: any_Connect_result1_upvw (read and write)
+		-- [3]: tbl_2_upvr (readonly)
+	-- ]]
+	-- if var46_upvw then
+		-- var46_upvw:Disconnect()
+	-- end
+	-- if any_Connect_result1_upvw then
+		-- any_Connect_result1_upvw:Disconnect()
+	-- end
+	-- for _, v_2 in ipairs(tbl_2_upvr) do
+		-- if v_2 then
+			-- v_2:Disconnect()
+		-- end
+	-- end
+-- end
+-- Humanoid_upvr.Died:Connect(disconnect)
+-- Parent_upvr.LowerTorso.ChildAdded:Connect(function(arg1) -- Line 473
+	-- --[[ Upvalues[1]:
+		-- [1]: HumanoidRootPart_upvr (readonly)
+	-- ]]
+	-- if arg1:IsA("BallSocketConstraint") then
+		-- HumanoidRootPart_upvr.Anchored = false
+	-- end
+-- end)
+-- Parent_upvr.AncestryChanged:Connect(function() -- Line 479
+	-- --[[ Upvalues[1]:
+		-- [1]: Parent_upvr (readonly)
+	-- ]]
+	-- if Parent_upvr.Parent ~= workspace then
+		-- disconnect()
+	-- end
+-- end)
+-- game.ReplicatedStorage.Events.Teleport.OnClientEvent:Connect(function(arg1) -- Line 485
+	-- --[[ Upvalues[1]:
+		-- [1]: HumanoidRootPart_upvr (readonly)
+	-- ]]
+	-- if not arg1 or not HumanoidRootPart_upvr then
+	-- else
+		-- HumanoidRootPart_upvr.CFrame = arg1
+	-- end
+-- end)
