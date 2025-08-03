@@ -171,10 +171,11 @@ main:CreateToggle("自动刷", function(enabled)
                 -- if workspace:FindFirstChild("Loading") then
                 --     teleportPos()
                 -- end
-                local x = (tick() * 100 % 256) - 128
-                local z = math.floor(tick() * 100 / 256 % 256) - 128
-
-                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(x, LocalPlayer.Character.HumanoidRootPart.Position.Y, z) * CFrame.Angles(0, math.rad(180), 0)
+                local r = (ran * -10) / 32 % 128
+                local x = math.cos(ran) * r
+                local z = math.sin(ran) * r
+                
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(x, LocalPlayer.Character.HumanoidRootPart.Position.Y, z) * CFrame.Angles(0, math.atan2(x, z), 0)
             end
         end
         if map and chunks then
@@ -307,6 +308,19 @@ main:CreateToggle("自动领", function(enabled)
             end
             
             Events.SpinEvent:FireServer()
+        end
+    end)()
+end)
+
+main:CreateToggle("取消锚固", function(enabled)
+    keepUnanchor = enabled
+    
+    coroutine.wrap(function()
+        while keepUnanchor do
+            task.wait()
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                LocalPlayer.Character.HumanoidRootPart.Anchored = false
+            end
         end
     end)()
 end)
