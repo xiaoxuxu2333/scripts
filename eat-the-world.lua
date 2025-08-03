@@ -95,8 +95,8 @@ main:CreateToggle("自动刷", function(enabled)
         
         local bedrock = Instance.new("Part")
         bedrock.Anchored = true
-        bedrock.Size = Vector3.new(300, 1, 300)
-        bedrock.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+        bedrock.Size = Vector3.new(2048, 10, 2048)
+        bedrock.Transparency = 1
         bedrock.Parent = workspace
 
         LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.zero
@@ -106,54 +106,74 @@ main:CreateToggle("自动刷", function(enabled)
             map.Parent, chunks.Parent = nil, nil
         end
 
-        task.wait(0.3)
+        local t = 0
         
-        while autofarm do
-            local dt = task.wait()
+        local root,
+            size,
+            events,
+            eat,
+            grab,
+            sell,
+            chunk,
+            autoConn
+        
+        local function onCharAdd(char)
+            root = char:WaitForChild("HumanoidRootPart")
+            size = char:WaitForChild("Size")
+            events = char:WaitForChild("Events")
+            eat = events:WaitForChild("Eat")
+            grab = events:WaitForChild("Grab")
+            sell = events:WaitForChild("Sell")
+            chunk = char:WaitForChild("CurrentChunk")
             
-            local ran = tick() - startTime
-            local hours = math.floor(ran / 60 / 60)
-            local minutes = math.floor(ran / 60)
-            local seconds = math.floor(ran)
+            char:WaitForChild("LocalChunkManager").Enabled = false
             
-            local eatMinutes = math.floor(eatTime / 60)
-            local eatSeconds = math.floor(eatTime)
+            if not autofarm then return end
             
-            local secondEarn = sizeGrowth(LocalPlayer.Upgrades.MaxSize.Value) / eatTime
-            local minuteEarn = secondEarn * 60
-            local hourEarn = minuteEarn * 60
-            local dayEarn = hourEarn * 24
-            
-            local t = ran / math.pi
-            local r = -t * math.pi % 128
-            local x = math.cos(t) * r
-            local z = math.sin(t) * r
-            
-            text.Text = "EatTime: " .. string.format("%im%is", eatMinutes % 60, eatSeconds % 60)
-                .. "\nSellCount: " .. sellCount
-                .. "\nSecondEarn: " .. secondEarn
-                .. "\nMinuteEarn: " .. minuteEarn
-                .. "\nHourEarn: " .. hourEarn
-                .. "\nDayEarn: " .. dayEarn
-                .. "\nRan: " .. string.format("%ih%im%is", hours, minutes % 60, seconds % 60)
-                .. "\nRadius: " .. r
-            
-            if checkLoaded() then
-                LocalPlayer.Character.Events.Grab:FireServer()
-                LocalPlayer.Character.HumanoidRootPart.Anchored = false
-                LocalPlayer.Character.Events.Eat:FireServer()
+            autoConn = game["Run Service"].Heartbeat:Connect(function(dt)
+                local ran = tick() - startTime
+                local hours = math.floor(ran / 60 / 60)
+                local minutes = math.floor(ran / 60)
+                local seconds = math.floor(ran)
                 
-                if LocalPlayer.Character.CurrentChunk.Value then
+                local eatMinutes = math.floor(eatTime / 60)
+                local eatSeconds = math.floor(eatTime)
+                
+                local secondEarn = math.floor(sizeGrowth(LocalPlayer.Upgrades.MaxSize.Value) / eatTime)
+                local minuteEarn = secondEarn * 60
+                local hourEarn = minuteEarn * 60
+                local dayEarn = hourEarn * 24
+                
+                t += size.Value * dt / 512
+                t = t % (256 * 256)
+                local r = -t * math.pi % 128
+                local x = math.cos(t) * r
+                local z = math.sin(t) * r
+                
+                text.Text = "EatTime: " .. string.format("%im%is", eatMinutes % 60, eatSeconds % 60)
+                    .. "\nSellCount: " .. sellCount
+                    .. "\nSecondEarn: " .. secondEarn
+                    .. "\nMinuteEarn: " .. minuteEarn
+                    .. "\nHourEarn: " .. hourEarn
+                    .. "\nDayEarn: " .. dayEarn
+                    .. "\nRan: " .. string.format("%ih%im%is", hours, minutes % 60, seconds % 60)
+                    .. "\nRadius: " .. r
+                
+                grab:FireServer()
+                root.Anchored = false
+                eat:FireServer()
+                
+                if chunk.Value then
                     timer = 0
                 else
                     timer += dt
                 end
                 
-                if (LocalPlayer.Character.Size.Value >= LocalPlayer.Upgrades.MaxSize.Value)
+                if (size.Value >= LocalPlayer.Upgrades.MaxSize.Value)
                     or timer > 8
                 then
                     if timer < 8 then
-                        LocalPlayer.Character.Events.Sell:FireServer()
+                        sell:FireServer()
                         
                         if not sellDebounce then
                             local currentEatTime = tick()
@@ -168,20 +188,31 @@ main:CreateToggle("自动刷", function(enabled)
                     timer = 0
                     
                     changeMap()
-                elseif (LocalPlayer.Character.Size.Value < LocalPlayer.Upgrades.MaxSize.Value) then
+                    t = 0
+                elseif (size.Value < LocalPlayer.Upgrades.MaxSize.Value) then
                     sellDebounce = false
                 end
                 
-                LocalPlayer.Character.LocalChunkManager.Enabled = false
-
-                -- if workspace:FindFirstChild("Loading") then
-                --     teleportPos()
-                -- end
-                
-                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(x, LocalPlayer.Character.HumanoidRootPart.Position.Y, z) * CFrame.Angles(0, math.atan2(x, z) + math.pi, 0)
-                -- workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
-                -- workspace.CurrentCamera.CFrame = CFrame.new(Vector3.new(0, 100 + LocalPlayer.Character.Size.Value, 0), Vector3.zero)
-            end
+                root.CFrame = CFrame.new(x, root.Position.Y, z) * CFrame.Angles(0, math.atan2(x, z) + math.pi, 0)
+            end)
+            
+            char.Humanoid.Died:Connect(function()
+                autoConn:Disconnect()
+            end)
+        end
+        
+        if LocalPlayer.Character then
+            onCharAdd(LocalPlayer.Character)
+        else
+            onCharAdd(LocalPlayer.CharacterAdded:Wait())
+        end
+        local charAddConn = LocalPlayer.CharacterAdded:Connect(onCharAdd)
+        while autofarm do
+            local dt = task.wait()
+        end
+        charAddConn:Disconnect()
+        if autoConn then
+            autoConn:Disconnect()
         end
         if map and chunks then
             map.Parent, chunks.Parent = workspace, workspace
@@ -189,7 +220,6 @@ main:CreateToggle("自动刷", function(enabled)
         bedrock:Destroy()
         LocalPlayer.Character.LocalChunkManager.Enabled = true
         text:Destroy()
-        workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
     end)()
 end)
 
