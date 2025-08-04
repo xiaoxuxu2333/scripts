@@ -127,13 +127,6 @@ main:CreateToggle("自动刷", function(enabled)
             sell = events:WaitForChild("Sell")
             chunk = char:WaitForChild("CurrentChunk")
             sendTrack = char:WaitForChild("SendTrack")
-            pullSpeed = char:WaitForChild("PullSpeed")
-            
-            task.wait(0.3)
-            if not autofarm then return end
-            
-            char:WaitForChild("LocalChunkManager").Enabled = false
-            
             autoConn = game["Run Service"].Heartbeat:Connect(function(dt)
                 local ran = tick() - startTime
                 local hours = math.floor(ran / 60 / 60)
@@ -203,14 +196,18 @@ main:CreateToggle("自动刷", function(enabled)
                 if farmMoving then
                     root.CFrame = CFrame.new(x, y, z) * CFrame.Angles(0, math.atan2(x, z) + math.pi, 0)
                 else
-                    root.CFrame = CFrame.new(0, y, 0)
+                    root.CFrame = CFrame.new(0, y, 0) * CFrame.Angles(0, math.rad(360 *  (ran / 360)), 0)
                 end
                 root.Velocity = Vector3.zero
             end)
             
-            char.Humanoid.Died:Connect(function()
+            hum.Died:Connect(function()
                 autoConn:Disconnect()
+                changeMap()
             end)
+            
+            char:WaitForChild("LocalChunkManager").Enabled = false
+            char:WaitForChild("Animate").Enabled = false
         end
         
         if LocalPlayer.Character then
@@ -235,6 +232,7 @@ main:CreateToggle("自动刷", function(enabled)
         hum:ChangeState(Enum.HumanoidStateType.GettingUp)
         bedrock:Destroy()
         LocalPlayer.Character.LocalChunkManager.Enabled = true
+        LocalPlayer.Character.Animate.Enabled = true
         text:Destroy()
     end)()
 end)
