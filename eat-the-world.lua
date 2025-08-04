@@ -197,7 +197,11 @@ main:CreateToggle("自动刷", function(enabled)
                     sellDebounce = false
                 end
                 
-                root.CFrame = CFrame.new(x, root.Position.Y, z) * CFrame.Angles(0, math.atan2(x, z) + math.pi, 0)
+                if farmMoving then
+                    root.CFrame = CFrame.new(x, root.Position.Y, z) * CFrame.Angles(0, math.atan2(x, z) + math.pi, 0)
+                else
+                    root.CFrame = CFrame.new(0, root.Position.Y, 0)
+                end
             end)
             
             char.Humanoid.Died:Connect(function()
@@ -228,6 +232,10 @@ main:CreateToggle("自动刷", function(enabled)
         LocalPlayer.Character.LocalChunkManager.Enabled = true
         text:Destroy()
     end)()
+end)
+
+main:CreateToggle("移动模式", function(enabled)
+    farmMoving = enabled
 end)
 
 main:CreateToggle("自动吃", function(enabled)
