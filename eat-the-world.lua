@@ -96,7 +96,7 @@ main:CreateToggle("自动刷", function(enabled)
         local bedrock = Instance.new("Part")
         bedrock.Anchored = true
         bedrock.Size = Vector3.new(2048, 10, 2048)
-        bedrock.Transparency = 1
+        -- bedrock.Transparency = 1
         bedrock.Parent = workspace
 
         local map, chunks = workspace:FindFirstChild("Map"), workspace:FindFirstChild("Chunks")
@@ -106,7 +106,8 @@ main:CreateToggle("自动刷", function(enabled)
 
         local t = 0
         
-        local root,
+        local hum,
+            root,
             size,
             events,
             eat,
@@ -117,6 +118,7 @@ main:CreateToggle("自动刷", function(enabled)
             autoConn
         
         local function onCharAdd(char)
+            hum = char:WaitForChild("Humanoid")
             root = char:WaitForChild("HumanoidRootPart")
             size = char:WaitForChild("Size")
             events = char:WaitForChild("Events")
@@ -150,6 +152,7 @@ main:CreateToggle("自动刷", function(enabled)
                 t = t % (256 * 256)
                 local r = -t * math.pi % 128
                 local x = math.cos(t) * r
+                local y = bedrock.Position.Y + bedrock.Size.Y / 2 + hum.HipHeight + root.Size.Y / 2
                 local z = math.sin(t) * r
                 
                 text.Text = "EatTime: " .. string.format("%im%is", eatMinutes % 60, eatSeconds % 60)
@@ -161,11 +164,11 @@ main:CreateToggle("自动刷", function(enabled)
                     .. "\nRan: " .. string.format("%ih%im%is", hours, minutes % 60, seconds % 60)
                     .. "\nRadius: " .. r
                 
+                hum:ChangeState(Enum.HumanoidStateType.Physics)
                 grab:FireServer()
                 root.Anchored = false
                 eat:FireServer()
                 sendTrack:FireServer()
-                pullSpeed.Value = 10
                 
                 if chunk.Value then
                     timer = 0
@@ -198,10 +201,11 @@ main:CreateToggle("自动刷", function(enabled)
                 end
                 
                 if farmMoving then
-                    root.CFrame = CFrame.new(x, root.Position.Y, z) * CFrame.Angles(0, math.atan2(x, z) + math.pi, 0)
+                    root.CFrame = CFrame.new(x, y, z) * CFrame.Angles(0, math.atan2(x, z) + math.pi, 0)
                 else
-                    root.CFrame = CFrame.new(0, root.Position.Y, 0)
+                    root.CFrame = CFrame.new(0, y, 0)
                 end
+                root.Velocity = Vector3.zero
             end)
             
             char.Humanoid.Died:Connect(function()
@@ -228,6 +232,7 @@ main:CreateToggle("自动刷", function(enabled)
         if map and chunks then
             map.Parent, chunks.Parent = workspace, workspace
         end
+        hum:ChangeState(Enum.HumanoidStateType.GettingUp)
         bedrock:Destroy()
         LocalPlayer.Character.LocalChunkManager.Enabled = true
         text:Destroy()
