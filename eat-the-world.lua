@@ -181,13 +181,13 @@ main:CreateToggle("自动刷", function(enabled)
                             lastEatTime = currentEatTime
                             
                             sellCount += 1
+                            
+                            changeMap()
                         end
                         
                         sellDebounce = true
                     end
                     timer = 0
-                    
-                    changeMap()
                     t = 0
                 elseif (size.Value < LocalPlayer.Upgrades.MaxSize.Value) then
                     sellDebounce = false
