@@ -82,12 +82,18 @@ main:CreateToggle("自动刷", function(enabled)
     	text.Center = false
     	text.Position = Vector2.new(64, 64)
     	text.Text = ""
-    	text.Size = 24
+    	text.Size = 14
     	text.Visible = true
     	
     	local startTime = tick()
     	local eatTime = 0
     	local lastEatTime = tick()
+        
+    	local grabTime = 0
+    	local oneTime = 0
+    	local tempOneTime = 0
+    	local sizeTime = 0
+    	local lastSizeTime = tick()
         
         local timer = 0
         local sellDebounce = false
@@ -115,7 +121,8 @@ main:CreateToggle("自动刷", function(enabled)
             sell,
             sendTrack,
             chunk,
-            autoConn
+            autoConn,
+            sizeConn
         
         local function onCharAdd(char)
             hum = char:WaitForChild("Humanoid")
@@ -148,14 +155,23 @@ main:CreateToggle("自动刷", function(enabled)
                 local y = bedrock.Position.Y + bedrock.Size.Y / 2 + hum.HipHeight + root.Size.Y / 2
                 local z = math.sin(t) * r
                 
-                text.Text = "EatTime: " .. string.format("%im%is", eatMinutes % 60, eatSeconds % 60)
-                    .. "\nSellCount: " .. sellCount
-                    .. "\nSecondEarn: " .. secondEarn
-                    .. "\nMinuteEarn: " .. minuteEarn
-                    .. "\nHourEarn: " .. hourEarn
-                    .. "\nDayEarn: " .. dayEarn
-                    .. "\nRan: " .. string.format("%ih%im%is", hours, minutes % 60, seconds % 60)
-                    .. "\nRadius: " .. r
+                local sellTime = (LocalPlayer.Upgrades.MaxSize.Value / 2) * oneTime
+                local sellMinutes = math.floor(sellTime / 60)
+                local sellSeconds = math.floor(sellTime)
+                
+                text.Text = ""
+                    .. "\n运行时间: " .. string.format("%ih%im%is", hours, minutes % 60, seconds % 60)
+                    .. "\n实际时间: " .. string.format("%im%is", eatMinutes % 60, eatSeconds % 60)
+                    .. "\n预售时间: " .. string.format("%im%is", sellMinutes % 60, sellSeconds % 60)
+                    .. "\n抓取时间: " .. string.format("%ims", math.floor(grabTime * 1000))
+                    .. "\n吃块时间: " .. string.format("%ims", math.floor(sizeTime * 1000))
+                    .. "\n抓吃时间: " .. string.format("%ims", math.floor(oneTime * 1000))
+                    .. "\n出售: " .. sellCount
+                    .. "\n每秒: " .. secondEarn
+                    .. "\n每分钟: " .. minuteEarn
+                    .. "\n每小时: " .. hourEarn
+                    .. "\n每天: " .. dayEarn
+                    .. "\n旋转半径: " .. r
                 
                 hum:ChangeState(Enum.HumanoidStateType.Physics)
                 grab:FireServer()
@@ -164,9 +180,17 @@ main:CreateToggle("自动刷", function(enabled)
                 sendTrack:FireServer()
                 
                 if chunk.Value then
+                    if timer > 0 then
+                        grabTime = timer
+                        tempOneTime += grabTime
+                    end
                     timer = 0
                 else
                     timer += dt
+                    if tempOneTime > 0 then
+                        oneTime = tempOneTime
+                    end
+                    tempOneTime = 0
                 end
                 
                 if (size.Value >= LocalPlayer.Upgrades.MaxSize.Value)
@@ -200,9 +224,17 @@ main:CreateToggle("自动刷", function(enabled)
                 end
                 root.Velocity = Vector3.zero
             end)
+            sizeConn = size.Changed:Connect(function(size)
+                local current = tick()
+                sizeTime = current - lastSizeTime
+                lastSizeTime = current
+                
+                tempOneTime += sizeTime
+            end)
             
             hum.Died:Connect(function()
                 autoConn:Disconnect()
+                sizeConn:Disconnect()
                 changeMap()
             end)
             
@@ -225,6 +257,9 @@ main:CreateToggle("自动刷", function(enabled)
         charAddConn:Disconnect()
         if autoConn then
             autoConn:Disconnect()
+        end
+        if sizeConn then
+            sizeConn:Disconnect()
         end
         if map and chunks then
             map.Parent, chunks.Parent = workspace, workspace
@@ -803,7 +838,7 @@ return module_8
 -- 1.8
 -- 3.6
 -- 4.95
--- 5.8500000000000005
+-- 5.85
 -- 7.2
 -- 9
 -- 9.9
@@ -813,26 +848,26 @@ return module_8
 -- 14.4
 -- 15.75
 -- 17.1
--- 18.450000000000003
--- 20.250000000000004
--- 21.600000000000005
--- 22.500000000000004
--- 23.850000000000005
--- 25.650000000000006
--- 26.550000000000004
--- 27.900000000000006
--- 28.800000000000004
--- 30.600000000000005
--- 31.500000000000004
+-- 18.45
+-- 20.25
+-- 21.6
+-- 22.5
+-- 23.85
+-- 25.65
+-- 26.55
+-- 27.9
+-- 28.8
+-- 30.6
+-- 31.5
 -- 32.85
 -- 34.2
--- 35.550000000000004
--- 36.900000000000006
--- 38.25000000000001
--- 39.150000000000006
+-- 35.55
+-- 36.9
+-- 38.25
+-- 39.15
 -- 40.95
--- 42.300000000000004
--- 43.650000000000006
+-- 42.3
+-- 43.65
 -- 45.45
 -- 46.35
 -- 47.25
@@ -918,36 +953,36 @@ return module_8
 -- 161.1
 -- 162
 -- 163.8
--- 165.60000000000002
--- 166.95000000000002
--- 167.85000000000002
--- 168.75000000000003
--- 170.55000000000004
--- 171.90000000000003
--- 172.80000000000004
--- 174.60000000000005
--- 175.50000000000006
--- 176.85000000000005
--- 178.20000000000005
--- 179.10000000000005
--- 180.90000000000006
--- 182.25000000000006
--- 183.60000000000005
--- 184.50000000000006
--- 185.85000000000005
--- 187.20000000000005
--- 188.10000000000005
--- 189.00000000000006
--- 190.80000000000007
--- 192.15000000000006
--- 193.50000000000006
--- 194.40000000000006
--- 195.30000000000007
--- 197.10000000000008
--- 198.9000000000001
--- 200.7000000000001
--- 201.6000000000001
--- 202.5000000000001]]):split("\n")
+-- 165.6
+-- 166.95
+-- 167.85
+-- 168.75
+-- 170.55
+-- 171.9
+-- 172.8
+-- 174.6
+-- 175.5
+-- 176.85
+-- 178.2
+-- 179.1
+-- 180.9
+-- 182.25
+-- 183.6
+-- 184.5
+-- 185.85
+-- 187.2
+-- 188.1
+-- 189
+-- 190.8
+-- 192.15
+-- 193.5
+-- 194.4
+-- 195.3
+-- 197.1
+-- 198.9
+-- 200.7
+-- 201.6
+-- 202.5]]):split("\n")
 
 
 -- Decompiler will be improved VERY SOON!
