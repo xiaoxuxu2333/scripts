@@ -102,6 +102,7 @@ main:CreateToggle("自动刷", function(enabled)
         local bedrock = Instance.new("Part")
         bedrock.Anchored = true
         bedrock.Size = Vector3.new(2048, 10, 2048)
+        bedrock.Position = Vector3.new(0, -5, 0)
         -- bedrock.Transparency = 1
         bedrock.Parent = workspace
 
@@ -256,6 +257,13 @@ main:CreateToggle("自动刷", function(enabled)
             if workspace:FindFirstChild("Loading") then
                 workspace.Loading:Destroy()
             end
+            if map and chunks then
+                if showMap then
+                    map.Parent, chunks.Parent = workspace, workspace
+                else
+                    map.Parent, chunks.Parent = nil, nil
+                end
+            end
         end
         charAddConn:Disconnect()
         if autoConn then
@@ -277,6 +285,10 @@ end)
 
 main:CreateToggle("移动模式", function(enabled)
     farmMoving = enabled
+end)
+
+main:CreateToggle("显示地图", function(enabled)
+    showMap = enabled
 end)
 
 main:CreateToggle("自动吃", function(enabled)
