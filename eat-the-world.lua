@@ -104,6 +104,7 @@ main:CreateToggle("自动刷", function(enabled)
         bedrock.Size = Vector3.new(2048, 10, 2048)
         bedrock.Position = Vector3.new(0, -5, 0)
         -- bedrock.Transparency = 1
+        bedrock.BrickColor = BrickColor.Black()
         bedrock.Parent = workspace
 
         local map, chunks = workspace:FindFirstChild("Map"), workspace:FindFirstChild("Chunks")
