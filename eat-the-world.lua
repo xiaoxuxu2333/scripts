@@ -210,7 +210,10 @@ main:CreateToggle("自动刷", function(enabled)
                         end
                         
                         sellDebounce = true
+                    else
+                        changeMap()
                     end
+                    
                     timer = 0
                     t = 0
                 elseif (size.Value < LocalPlayer.Upgrades.MaxSize.Value) then
