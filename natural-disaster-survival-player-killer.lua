@@ -23,10 +23,6 @@ local random = Random.new()
 
 local parts = {}
 
-local disconnected = Instance.new("BindableEvent")
-
-local anchoredParts = {}
-
 local function onPartAdded(part)
     if part:IsA("BasePart") then
         task.wait(0.5)
