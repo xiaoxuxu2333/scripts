@@ -150,32 +150,13 @@ main:CreateToggle("自动刷", function(enabled)
                     14=大小
                     6=乘数
                     
-                    6/100=0.06
-                    14/0.06=233.3333333
-                    233/2=116.5
+                    7/100=0.07
+                    14/0.07=200
+                    200/2=100
                     
                     56/100=0.56
                     300/0.56=535.7142857
                     535.7142857/2=267.8571429
-                    
-                    260
-                    
-                    6/100=0.06
-                    14/0.06=233.3333333
-                    233.3333333/2=116.6666667
-                    233.3333333/3=77.77777777
-                    233.3333333/4=58.33333333
-                    
-                    56/100=0.56
-                    300/0.56=535.7142857
-                    535.7142857/2=267.8571429
-                    267.8571429/60=4.464285715
-                    
-                    55/100=0.55
-                    301/0.55=547.2727273
-                    547.2727273/2=273.6363637
-                    
-                    273.6363637/60=4.560606062
                 ]]
                 local sizeAdd = LocalPlayer.Upgrades.Multiplier.Value / 100
                 local addAmount = LocalPlayer.Upgrades.MaxSize.Value / sizeAdd
@@ -208,19 +189,13 @@ main:CreateToggle("自动刷", function(enabled)
                     timer += dt
                 end
                 
-                if (size.Value >= LocalPlayer.Upgrades.MaxSize.Value)
+                if (size.Value + (sizeAdd * 3) >= LocalPlayer.Upgrades.MaxSize.Value)
                     or timer > 8
                 then
                     if timer < 8 then
                         sell:FireServer()
                         
                         if not sellDebounce then
-                            local currentEatTime = tick()
-                            eatTime = currentEatTime - lastEatTime
-                            lastEatTime = currentEatTime
-                            
-                            sellCount += 1
-                            
                             changeMap()
                         end
                         
@@ -228,10 +203,14 @@ main:CreateToggle("自动刷", function(enabled)
                     else
                         changeMap()
                     end
-                    
-                    timer = 0
-                    t = 0
-                elseif (size.Value < LocalPlayer.Upgrades.MaxSize.Value) then
+                elseif size.Value == 0 then
+                    if sellDebounce then
+                        local currentEatTime = tick()
+                        eatTime = currentEatTime - lastEatTime
+                        lastEatTime = currentEatTime
+                        
+                        sellCount += 1
+                    end
                     sellDebounce = false
                 end
                 
