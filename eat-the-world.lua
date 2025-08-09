@@ -89,12 +89,6 @@ main:CreateToggle("自动刷", function(enabled)
     	local eatTime = 0
     	local lastEatTime = tick()
         
-    	local grabTime = 0
-    	local oneTime = 0
-    	local tempOneTime = 0
-    	local sizeTime = 0
-    	local lastSizeTime = tick()
-        
         local timer = 0
         local sellDebounce = false
         local sellCount = 0
@@ -145,35 +139,27 @@ main:CreateToggle("自动刷", function(enabled)
                 local eatMinutes = math.floor(eatTime / 60)
                 local eatSeconds = math.floor(eatTime)
                 
-                local secondEarn = math.floor(sizeGrowth(LocalPlayer.Upgrades.MaxSize.Value) / eatTime)
-                local minuteEarn = secondEarn * 60
-                local hourEarn = minuteEarn * 60
-                local dayEarn = hourEarn * 24
-                
-                t += size.Value * dt / 512
+                t += (size.Value / LocalPlayer.Upgrades.MaxSize.Value) * dt
                 t = t % (256 * 256)
                 local r = -t * math.pi % 128
                 local x = math.cos(t) * r
                 local y = bedrock.Position.Y + bedrock.Size.Y / 2 + hum.HipHeight + root.Size.Y / 2
                 local z = math.sin(t) * r
                 
-                local sellTime = (LocalPlayer.Upgrades.MaxSize.Value / 2) * oneTime
+                local sellTime = LocalPlayer.Upgrades.MaxSize.Value * (5 + ((0.5 / LocalPlayer.Upgrades.EatSpeed.Value) * 3))
                 local sellMinutes = math.floor(sellTime / 60)
                 local sellSeconds = math.floor(sellTime)
+                
+                local secondEarn = math.floor(sizeGrowth(LocalPlayer.Upgrades.MaxSize.Value) / sellTime)
+                local minuteEarn = secondEarn * 60
+                local hourEarn = minuteEarn * 60
+                local dayEarn = hourEarn * 24
                 
                 text.Text = ""
                     .. "\n运行时间: " .. string.format("%ih%im%is", hours, minutes % 60, seconds % 60)
                     .. "\n实际时间: " .. string.format("%im%is", eatMinutes % 60, eatSeconds % 60)
-                    .. "\n预售时间: " .. string.format("%im%is", sellMinutes % 60, sellSeconds % 60)
-                    .. "\n抓取时间: " .. string.format("%ims", math.floor(grabTime * 1000))
-                    .. "\n吃块时间: " .. string.format("%ims", math.floor(sizeTime * 1000))
-                    .. "\n抓吃时间: " .. string.format("%ims", math.floor(oneTime * 1000))
-                    .. "\n出售: " .. sellCount
-                    .. "\n每秒: " .. secondEarn
-                    .. "\n每分钟: " .. minuteEarn
-                    .. "\n每小时: " .. hourEarn
+                    .. "\n大约时间: " .. string.format("%im%is", sellMinutes % 60, sellSeconds % 60)
                     .. "\n每天: " .. dayEarn
-                    .. "\n旋转半径: " .. r
                 
                 hum:ChangeState(Enum.HumanoidStateType.Physics)
                 grab:FireServer()
@@ -182,17 +168,9 @@ main:CreateToggle("自动刷", function(enabled)
                 sendTrack:FireServer()
                 
                 if chunk.Value then
-                    if timer > 0 then
-                        grabTime = timer
-                        tempOneTime += grabTime
-                    end
                     timer = 0
                 else
                     timer += dt
-                    if tempOneTime > 0 then
-                        oneTime = tempOneTime
-                    end
-                    tempOneTime = 0
                 end
                 
                 if (size.Value >= LocalPlayer.Upgrades.MaxSize.Value)
@@ -229,17 +207,9 @@ main:CreateToggle("自动刷", function(enabled)
                 end
                 root.Velocity = Vector3.zero
             end)
-            sizeConn = size.Changed:Connect(function(size)
-                local current = tick()
-                sizeTime = current - lastSizeTime
-                lastSizeTime = current
-                
-                tempOneTime += sizeTime
-            end)
             
             hum.Died:Connect(function()
                 autoConn:Disconnect()
-                sizeConn:Disconnect()
                 changeMap()
             end)
             
@@ -269,9 +239,6 @@ main:CreateToggle("自动刷", function(enabled)
         charAddConn:Disconnect()
         if autoConn then
             autoConn:Disconnect()
-        end
-        if sizeConn then
-            sizeConn:Disconnect()
         end
         if map and chunks then
             map.Parent, chunks.Parent = workspace, workspace
