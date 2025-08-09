@@ -146,7 +146,42 @@ main:CreateToggle("自动刷", function(enabled)
                 local y = bedrock.Position.Y + bedrock.Size.Y / 2 + hum.HipHeight + root.Size.Y / 2
                 local z = math.sin(t) * r
                 
-                local sellTime = LocalPlayer.Upgrades.MaxSize.Value * LocalPlayer.Upgrades.Multiplier.Value
+                --[[
+                    14=大小
+                    6=乘数
+                    
+                    6/100=0.06
+                    14/0.06=233.3333333
+                    233/2=116.5
+                    
+                    56/100=0.56
+                    300/0.56=535.7142857
+                    535.7142857/2=267.8571429
+                    
+                    260
+                    
+                    6/100=0.06
+                    14/0.06=233.3333333
+                    233.3333333/2=116.6666667
+                    233.3333333/3=77.77777777
+                    233.3333333/4=58.33333333
+                    
+                    56/100=0.56
+                    300/0.56=535.7142857
+                    535.7142857/2=267.8571429
+                    267.8571429/60=4.464285715
+                    
+                    55/100=0.55
+                    301/0.55=547.2727273
+                    547.2727273/2=273.6363637
+                    
+                    273.6363637/60=4.560606062
+                ]]
+                local sizeAdd = LocalPlayer.Upgrades.Multiplier.Value / 100
+                local addAmount = LocalPlayer.Upgrades.MaxSize.Value / sizeAdd
+                
+                -- local sellTime = LocalPlayer.Upgrades.MaxSize.Value * LocalPlayer.Upgrades.Multiplier.Value
+                local sellTime = addAmount / 2
                 local sellMinutes = math.floor(sellTime / 60)
                 local sellSeconds = math.floor(sellTime)
                 
