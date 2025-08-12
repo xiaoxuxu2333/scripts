@@ -154,9 +154,9 @@ main:CreateToggle("自动刷", function(enabled)
                     14/0.07=200
                     200/2=100
                     
-                    56/100=0.56
-                    300/0.56=535.7142857
-                    535.7142857/2=267.8571429
+                    56.3/100=0.563
+                    300/0.563=532.8596803
+                    532.8596803/2=266.4298402
                 ]]
                 local sizeAdd = LocalPlayer.Upgrades.Multiplier.Value / 100
                 local addAmount = LocalPlayer.Upgrades.MaxSize.Value / sizeAdd
@@ -217,9 +217,8 @@ main:CreateToggle("自动刷", function(enabled)
                 if farmMoving then
                     root.CFrame = CFrame.new(x, y, z) * CFrame.Angles(0, math.atan2(x, z) + math.pi, 0)
                 else
-                    root.CFrame = CFrame.new(0, y, 0) * CFrame.Angles(0, math.rad(360 *  (ran / 360)), 0)
+                    root.CFrame = CFrame.new(0, y, 0)
                 end
-                root.Velocity = Vector3.zero
             end)
             
             hum.Died:Connect(function()
@@ -281,36 +280,9 @@ main:CreateToggle("自动吃", function(enabled)
             local dt = task.wait()
             
             if checkLoaded() then
-                if LocalPlayer.Character.Humanoid.FloorMaterial ~= Enum.Material.Air and not workspace:FindFirstChild("Loading") then
-                    LocalPlayer.Character.Events.Grab:FireServer()
-                end
+                LocalPlayer.Character.HumanoidRootPart.Anchored = false
+                LocalPlayer.Character.Events.Grab:FireServer()
                 LocalPlayer.Character.Events.Eat:FireServer()
-            end
-        end
-    end)()
-end)
-
-main:CreateToggle("自动抛", function(enabled)
-    autoeat = enabled
-    
-    coroutine.wrap(function()
-        while autoeat do
-            local dt = task.wait()
-            
-            if checkLoaded()
-                and not workspace:FindFirstChild("Loading")
-            then
-                LocalPlayer.Character:PivotTo(workspace.Map.Bedrock.CFrame + Vector3.new(0, workspace.Map.Bedrock.Size.Y / 2, 0) + Vector3.new(0, LocalPlayer.Character.Humanoid.HipHeight * 2, 0))
-                if LocalPlayer.Character.Humanoid.FloorMaterial ~= Enum.Material.Air and not workspace:FindFirstChild("Loading") then
-                    LocalPlayer.Character.Events.Grab:FireServer()
-                end
-                changeMap()
-                wait(1.5)
-                LocalPlayer.Character.Events.Eat:FireServer()
-                wait(0.1)
-                LocalPlayer.Character.Events.Eat:FireServer()
-                wait(0.1)
-                LocalPlayer.Character.Events.Throw:FireServer()
             end
         end
     end)()
@@ -323,10 +295,7 @@ main:CreateToggle("自动升大小", function(enabled)
         game.CoreGui.PurchasePromptApp.Enabled = false
         while autoUpgradeSize do
             task.wait(1)
-            local args = {
-            	"MaxSize"
-            }
-            Events.PurchaseEvent:FireServer(unpack(args))
+            Events.PurchaseEvent:FireServer("MaxSize")
         end
         game.CoreGui.PurchasePromptApp.Enabled = true
     end)()
@@ -339,10 +308,7 @@ main:CreateToggle("自动升移速", function(enabled)
         game.CoreGui.PurchasePromptApp.Enabled = false
         while autoUpgradeSpd do
             task.wait(1)
-            local args = {
-            	"Speed"
-            }
-            Events.PurchaseEvent:FireServer(unpack(args))
+            Events.PurchaseEvent:FireServer("Speed")
         end
         game.CoreGui.PurchasePromptApp.Enabled = true
     end)()
@@ -355,10 +321,7 @@ main:CreateToggle("自动升乘数", function(enabled)
         game.CoreGui.PurchasePromptApp.Enabled = false
         while autoUpgradeMulti do
             task.wait(1)
-            local args = {
-            	"Multiplier"
-            }
-            Events.PurchaseEvent:FireServer(unpack(args))
+            Events.PurchaseEvent:FireServer("Multiplier")
         end
         game.CoreGui.PurchasePromptApp.Enabled = true
     end)()
@@ -371,10 +334,7 @@ main:CreateToggle("自动升吃速", function(enabled)
         game.CoreGui.PurchasePromptApp.Enabled = false
         while autoUpgradeEat do
             task.wait(1)
-            local args = {
-            	"EatSpeed"
-            }
-            Events.PurchaseEvent:FireServer(unpack(args))
+            Events.PurchaseEvent:FireServer("EatSpeed")
         end
         game.CoreGui.PurchasePromptApp.Enabled = true
     end)()
@@ -387,10 +347,9 @@ main:CreateToggle("自动领", function(enabled)
         while autoClaimRewards do
             task.wait(1)
             for _, reward in LocalPlayer.TimedRewards:GetChildren() do
-                local args = {
-                	reward
-                }
-                Events.RewardEvent:FireServer(unpack(args))
+                if reward.Value > 0 then
+                    Events.RewardEvent:FireServer(reward)
+                end
             end
             
             Events.SpinEvent:FireServer()
