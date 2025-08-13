@@ -9,7 +9,9 @@ getgenv().UILibCache = UILib
 
 local UI = UILib()
 local window = UI:NewWindow("吃吃世界")
-local main = window:NewSection("功能")
+local main = window:NewSection("自动")
+local figure = window:NewSection("人物")
+local others = window:NewSection("其它")
 
 local function getRoot()
     return LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -44,6 +46,34 @@ end
 
 local function sizeGrowth(level)
     return math.floor(((level + 0.5) ^ 2 - 0.25) / 2 * 100)
+end
+
+local function speedGrowth(level)
+    return math.floor(level * 2 + 10)
+end
+
+local function multiplierGrowth(level)
+    return math.floor(level)
+end
+
+local function eatSpeedGrowth(level)
+    return math.floor((1 + (level - 1) * 0.2) * 10) / 10
+end
+
+local function sizePrice(level)
+    return math.floor(level ^ 3 / 2) * 20
+end
+
+local function speedPrice(level)
+    return math.floor((level * 3) ^ 3 / 200) * 1000
+end
+
+local function multiplierPrice(level)
+    return math.floor((level * 10) ^ 3 / 200) * 1000
+end
+
+local function eatSpeedPrice(level)
+    return math.floor((level * 10) ^ 3 / 200) * 2000
 end
 
 local function teleportPos()
@@ -357,7 +387,7 @@ main:CreateToggle("自动领", function(enabled)
     end)()
 end)
 
-main:CreateToggle("取消锚固", function(enabled)
+figure:CreateToggle("取消锚固", function(enabled)
     keepUnanchor = enabled
     
     coroutine.wrap(function()
@@ -368,6 +398,47 @@ main:CreateToggle("取消锚固", function(enabled)
             end
         end
     end)()
+end)
+
+others:CreateButton("查看玩家数据", function()
+    local localization = {
+        MaxSize = "体积",
+        Speed = "移速",
+        Multiplier = "乘数",
+        EatSpeed = "吃速",
+    }
+    local growthFunctions = {
+        MaxSize = sizeGrowth,
+        Speed = speedGrowth,
+        Multiplier = multiplierGrowth,
+        EatSpeed = eatSpeedGrowth,
+    }
+    local priceFunctions = {
+        MaxSize = sizePrice,
+        Speed = speedPrice,
+        Multiplier = multiplierPrice,
+        EatSpeed = eatSpeedPrice,
+    }
+    for _, player in Players:GetPlayers() do
+        print()
+        for _, upg in player.Upgrades:GetChildren() do
+            local content = player.Name .. "："
+            
+            local cost = 0
+            for l = 2, upg.Value do
+                cost += priceFunctions[upg.Name](l)
+            end
+            
+            content = content .. " " .. `{localization[upg.Name]}：`
+            content = content .. " " .. `{upg.Value}级；`
+            content = content .. " " .. `{growthFunctions[upg.Name](upg.Value)}值；`
+            content = content .. " " .. `{cost}花费；`
+            
+            print(content)
+        end
+    end
+    
+    game.StarterGui:SetCore("DevConsoleVisible", true)
 end)
 
 
