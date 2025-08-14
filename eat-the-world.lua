@@ -219,7 +219,7 @@ main:CreateToggle("自动刷", function(enabled)
                     timer += dt
                 end
                 
-                if (size.Value + (sizeAdd * 3) >= LocalPlayer.Upgrades.MaxSize.Value)
+                if (size.Value + (sizeAdd * 2) >= LocalPlayer.Upgrades.MaxSize.Value)
                     or timer > 8
                 then
                     if timer < 8 then
