@@ -10,6 +10,7 @@ getgenv().UILibCache = UILib
 local UI = UILib()
 local window = UI:NewWindow("吃吃世界")
 local main = window:NewSection("自动")
+local upgrades = window:NewSection("升级")
 local figure = window:NewSection("人物")
 local others = window:NewSection("其它")
 
@@ -80,27 +81,6 @@ local function teleportPos()
     LocalPlayer.Character:PivotTo(CFrame.new(0, LocalPlayer.Character.Humanoid.HipHeight * 2, -100) * CFrame.Angles(0, math.rad(-90), 0))
 end
 
-main:CreateToggle("自动收", function(enabled)
-    autoCollectingCubes = enabled
-    
-    coroutine.wrap(function()
-        LocalPlayer.PlayerScripts.CubeVis.Enabled = false
-        while autoCollectingCubes do
-            task.wait()
-            local root = getRoot()
-            
-            if root then
-                for _, v in workspace:GetChildren() do
-                    if v.Name == "Cube" and v:FindFirstChild("Owner") and (v.Owner.Value == LocalPlayer.Name or v.Owner.Value == "") then
-                        v.CFrame = root.CFrame
-                    end
-                end
-            end
-        end
-        LocalPlayer.PlayerScripts.CubeVis.Enabled = true
-    end)()
-end)
-
 main:CreateToggle("自动刷", function(enabled)
     autofarm = enabled
     
@@ -120,6 +100,7 @@ main:CreateToggle("自动刷", function(enabled)
     	local lastEatTime = tick()
         
         local timer = 0
+        local grabTimer = 0
         local sellDebounce = false
         local sellCount = 0
         
@@ -136,7 +117,7 @@ main:CreateToggle("自动刷", function(enabled)
             map.Parent, chunks.Parent = nil, nil
         end
 
-        local t = 0
+        local numChunks = 0
         
         local hum,
             root,
@@ -147,10 +128,13 @@ main:CreateToggle("自动刷", function(enabled)
             sell,
             sendTrack,
             chunk,
+            radius,
             autoConn,
             sizeConn
         
         local function onCharAdd(char)
+            numChunks = 0
+            
             hum = char:WaitForChild("Humanoid")
             root = char:WaitForChild("HumanoidRootPart")
             size = char:WaitForChild("Size")
@@ -160,7 +144,13 @@ main:CreateToggle("自动刷", function(enabled)
             sell = events:WaitForChild("Sell")
             chunk = char:WaitForChild("CurrentChunk")
             sendTrack = char:WaitForChild("SendTrack")
+            radius = char:WaitForChild("Radius")
             autoConn = game["Run Service"].Heartbeat:Connect(function(dt)
+                if not autofarm then
+                    autoConn:Disconnect()
+                    return
+                end
+                
                 local ran = tick() - startTime
                 local hours = math.floor(ran / 60 / 60)
                 local minutes = math.floor(ran / 60)
@@ -169,29 +159,11 @@ main:CreateToggle("自动刷", function(enabled)
                 local eatMinutes = math.floor(eatTime / 60)
                 local eatSeconds = math.floor(eatTime)
                 
-                t += (size.Value / LocalPlayer.Upgrades.MaxSize.Value) * dt
-                t = t % (256 * 256)
-                local r = -t * math.pi % 128
-                local x = math.cos(t) * r
                 local y = bedrock.Position.Y + bedrock.Size.Y / 2 + hum.HipHeight + root.Size.Y / 2
-                local z = math.sin(t) * r
-                
-                --[[
-                    14=大小
-                    6=乘数
-                    
-                    7/100=0.07
-                    14/0.07=200
-                    200/2=100
-                    
-                    56.3/100=0.563
-                    300/0.563=532.8596803
-                    532.8596803/2=266.4298402
-                ]]
+
                 local sizeAdd = LocalPlayer.Upgrades.Multiplier.Value / 100
                 local addAmount = LocalPlayer.Upgrades.MaxSize.Value / sizeAdd
                 
-                -- local sellTime = LocalPlayer.Upgrades.MaxSize.Value * LocalPlayer.Upgrades.Multiplier.Value
                 local sellTime = addAmount / 2
                 local sellMinutes = math.floor(sellTime / 60)
                 local sellSeconds = math.floor(sellTime)
@@ -206,6 +178,7 @@ main:CreateToggle("自动刷", function(enabled)
                     .. "\n实际时间: " .. string.format("%im%is", eatMinutes % 60, eatSeconds % 60)
                     .. "\n大约时间: " .. string.format("%im%is", sellMinutes % 60, sellSeconds % 60)
                     .. "\n每天: " .. dayEarn
+                    .. "\n块数: " .. numChunks
                 
                 hum:ChangeState(Enum.HumanoidStateType.Physics)
                 grab:FireServer()
@@ -214,12 +187,27 @@ main:CreateToggle("自动刷", function(enabled)
                 sendTrack:FireServer()
                 
                 if chunk.Value then
+                    if timer > 0 then
+                        numChunks += 1
+                    end
                     timer = 0
+                    grabTimer += dt
                 else
                     timer += dt
+                    grabTimer = 0
                 end
                 
-                if (size.Value + (sizeAdd * 2) >= LocalPlayer.Upgrades.MaxSize.Value)
+                if timer > 15 then
+                    hum.Health = 0
+                    timer = 0
+                    numChunks = 0
+                end
+                
+                if grabTimer > 15 then
+                    size.Value = LocalPlayer.Upgrades.MaxSize.Value
+                end
+                
+                if (size.Value >= LocalPlayer.Upgrades.MaxSize.Value)
                     or timer > 8
                 then
                     if timer < 8 then
@@ -233,6 +221,7 @@ main:CreateToggle("自动刷", function(enabled)
                     else
                         changeMap()
                     end
+                    numChunks = 0
                 elseif size.Value == 0 then
                     if sellDebounce then
                         local currentEatTime = tick()
@@ -245,7 +234,22 @@ main:CreateToggle("自动刷", function(enabled)
                 end
                 
                 if farmMoving then
-                    root.CFrame = CFrame.new(x, y, z) * CFrame.Angles(0, math.atan2(x, z) + math.pi, 0)
+                    local bound = 300
+                    local startPos = CFrame.new(-bound/2, y, -bound/2)
+                    
+                    local r = radius.Value * 1.1
+                    local dist = (r * numChunks)
+                    local x = dist % bound
+                    local z = math.floor(dist / bound) * r
+                    local offset = CFrame.new(x, 0, z + r * 2)
+                    
+                    if z > bound then
+                        changeMap()
+                        numChunks = 0
+                    end
+                    
+                    root.CFrame = startPos * offset
+                    -- root.CFrame = CFrame.new(x, y, z) * CFrame.Angles(0, math.atan2(x, z) + math.pi, 0)
                 else
                     root.CFrame = CFrame.new(0, y, 0)
                 end
@@ -294,6 +298,44 @@ main:CreateToggle("自动刷", function(enabled)
     end)()
 end)
 
+main:CreateToggle("自动收", function(enabled)
+    autoCollectingCubes = enabled
+    
+    coroutine.wrap(function()
+        LocalPlayer.PlayerScripts.CubeVis.Enabled = false
+        while autoCollectingCubes do
+            task.wait()
+            local root = getRoot()
+            
+            if root then
+                for _, v in workspace:GetChildren() do
+                    if v.Name == "Cube" and v:FindFirstChild("Owner") and (v.Owner.Value == LocalPlayer.Name or v.Owner.Value == "") then
+                        v.CFrame = root.CFrame
+                    end
+                end
+            end
+        end
+        LocalPlayer.PlayerScripts.CubeVis.Enabled = true
+    end)()
+end)
+
+main:CreateToggle("自动领", function(enabled)
+    autoClaimRewards = enabled
+    
+    coroutine.wrap(function()
+        while autoClaimRewards do
+            task.wait(1)
+            for _, reward in LocalPlayer.TimedRewards:GetChildren() do
+                if reward.Value > 0 then
+                    Events.RewardEvent:FireServer(reward)
+                end
+            end
+            
+            Events.SpinEvent:FireServer()
+        end
+    end)()
+end)
+
 main:CreateToggle("移动模式", function(enabled)
     farmMoving = enabled
 end)
@@ -318,7 +360,7 @@ main:CreateToggle("自动吃", function(enabled)
     end)()
 end)
 
-main:CreateToggle("自动升大小", function(enabled)
+upgrades:CreateToggle("大小", function(enabled)
     autoUpgradeSize = enabled
     
     coroutine.wrap(function()
@@ -331,7 +373,7 @@ main:CreateToggle("自动升大小", function(enabled)
     end)()
 end)
 
-main:CreateToggle("自动升移速", function(enabled)
+upgrades:CreateToggle("移速", function(enabled)
     autoUpgradeSpd = enabled
     
     coroutine.wrap(function()
@@ -344,7 +386,7 @@ main:CreateToggle("自动升移速", function(enabled)
     end)()
 end)
 
-main:CreateToggle("自动升乘数", function(enabled)
+upgrades:CreateToggle("乘数", function(enabled)
     autoUpgradeMulti = enabled
     
     coroutine.wrap(function()
@@ -357,7 +399,7 @@ main:CreateToggle("自动升乘数", function(enabled)
     end)()
 end)
 
-main:CreateToggle("自动升吃速", function(enabled)
+upgrades:CreateToggle("吃速", function(enabled)
     autoUpgradeEat = enabled
     
     coroutine.wrap(function()
@@ -367,23 +409,6 @@ main:CreateToggle("自动升吃速", function(enabled)
             Events.PurchaseEvent:FireServer("EatSpeed")
         end
         game.CoreGui.PurchasePromptApp.Enabled = true
-    end)()
-end)
-
-main:CreateToggle("自动领", function(enabled)
-    autoClaimRewards = enabled
-    
-    coroutine.wrap(function()
-        while autoClaimRewards do
-            task.wait(1)
-            for _, reward in LocalPlayer.TimedRewards:GetChildren() do
-                if reward.Value > 0 then
-                    Events.RewardEvent:FireServer(reward)
-                end
-            end
-            
-            Events.SpinEvent:FireServer()
-        end
     end)()
 end)
 
@@ -439,6 +464,10 @@ others:CreateButton("查看玩家数据", function()
     end
     
     game.StarterGui:SetCore("DevConsoleVisible", true)
+end)
+
+others:CreateToggle("竖屏", function(enabled)
+    LocalPlayer.PlayerGui.ScreenOrientation = enabled and Enum.ScreenOrientation.Portrait or Enum.ScreenOrientation.LandscapeRight
 end)
 
 
