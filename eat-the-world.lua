@@ -197,7 +197,7 @@ main:CreateToggle("自动刷", function(enabled)
                     grabTimer = 0
                 end
                 
-                if timer > 15 then
+                if timer > 60 then
                     hum.Health = 0
                     timer = 0
                     numChunks = 0
