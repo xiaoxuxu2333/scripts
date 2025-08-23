@@ -425,6 +425,23 @@ figure:CreateToggle("取消锚固", function(enabled)
     end)()
 end)
 
+figure:CreateToggle("边界保护", function(enabled)
+    boundProtect = enabled
+    
+    coroutine.wrap(function()
+        while boundProtect do
+            task.wait()
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local root = LocalPlayer.Character.HumanoidRootPart
+                local pos = root.Position
+                local mapSize = workspace.Map.Bedrock.Size * Vector3.new(1, 0, 1)
+                local clampedPos = vector.clamp(pos * Vector3.new(1, 0, 1), -mapSize / 2, mapSize / 2)
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(clampedPos.X, pos.Y, clampedPos.Z) * root.CFrame.Rotation
+            end
+        end
+    end)()
+end)
+
 others:CreateButton("查看玩家数据", function()
     local localization = {
         MaxSize = "体积",
